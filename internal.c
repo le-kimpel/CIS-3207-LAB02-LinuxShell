@@ -13,7 +13,7 @@ learn how to fork, exec, pipe
 
 */
 
-//easiest goddamn function to write
+//clears the screen
 void cls ();
 //exits the shell
 void quit();
