@@ -1,0 +1,13 @@
+a
+#a.c#
+a.c
+a.c~
+a.out
+b.c
+c.c
+example.c
+file_list.txt
+output2.txt
+output2.txt~
+output.txt
+/home/TU/tug60017/OS_LABS/LAB02/test_dir

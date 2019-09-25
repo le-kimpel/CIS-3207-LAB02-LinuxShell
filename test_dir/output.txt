@@ -1,0 +1,6 @@
+enter a string: 
+The PARENT string is: potato
+x = 1
+enter a string: 
+The CHILD string is: potato + potato
+x = 0

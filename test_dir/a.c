@@ -19,7 +19,7 @@ int main(){
     
     printf("%s%s%s\n", "The CHILD string is: ", input, " + potato");
     printf("%s%d\n", "x = ", x);
-    wait();
+    
     
   }else if (fd > 0){
     
@@ -31,6 +31,6 @@ int main(){
     puts("error");
   }
 
-
-  return 0;
+ 
+   return 0;
 }

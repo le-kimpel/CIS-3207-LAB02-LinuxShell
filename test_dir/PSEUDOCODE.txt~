@@ -1,0 +1,62 @@
+"main.c"
+
+
+This chunk of code will attempt to describe the main function's basic operation.
+
+
+void function_start();
+int str_process();
+
+int main(){
+
+function_start();
+
+}
+
+
+void function_start(){
+
+//This could describe an initial state for no reason other than organizational purposes.
+It may not exist when the lab is rewritten.
+
+scanf(char *user input, char *some_string);
+
+//we should tokenize each string and check for errors
+
+str_process(some_string);
+
+if (str_procesS(some_string) == 0){
+//if command is successful
+handle_command(some_string);
+
+}else{
+printf("Error parsing string!");
+}
+
+}
+
+
+int handle_command(){
+
+//check for pipes and redirects
+//check for internal commands within the string
+//then check for external commands
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}

@@ -123,7 +123,6 @@ int cd(char *argv){
   }else{
     puts("An error occurred. Realpath could not be performed.");
   }
-
   //value to be returned by chdir(pwd)
   int new_dir = chdir(pwd);
 
