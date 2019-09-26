@@ -1,0 +1,60 @@
+#include <stdio.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+
+/*
+
+I want to: 
+
+
+a) learn how to fork
+b) learn how to exec outside programs within this smaller simulation
+c) learn how to replace STDIN, STDOUT in process page tables with dup2
+
+*/
+
+int exec_pracc(char *FILENAME);
+int dup2_pracc();
+
+int main(){
+    
+  exec_pracc("pracc.c");
+}
+
+
+int exec_pracc(char *FILENAME){
+
+  //this should create a parent and child process
+  //then the child process should exec a filename
+  //that's it...that's the program
+
+  int pid = fork();
+
+  //child process
+  if (pid == 0){
+
+    char *args[] = {"ls", NULL};
+    char *args2[] = {"touch", "new.txt", NULL};
+    char *args3[] = {"rm", "new.txt", NULL};
+    // char *args4[] = {"print_string()", NULL};
+    
+    execv("/bin/touch", args2);
+    execv("/bin/ls", args);
+    execv("/bin/rm", args3);
+
+    // execv("/OS_LABS/LAB02/test_dir/b.c", args4);
+    
+  }if (pid > 0){
+
+    wait(NULL);
+    printf("%s\n", "Done");
+    
+  }
+
+
+
+  }

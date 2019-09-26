@@ -1,0 +1,296 @@
+------------------------------------------------------------------------------------------------------
+PSEUDOCODE.txt
+
+Author: Lauren Kimpel
+TUID: tug60017@temple.edu
+LAB: CIS3207 LAB02 - Creating a Linux Shell
+TA: Jiacheng Shang
+
+
+------------------------------------------------------------------------------------------------------
+"internal.c"
+
+This chunk of code will handle all internal functions.
+
+
+void cls(){
+
+//sketchy code that prints 100 new lines to give the appearance
+of a cleared screen.
+
+   for (int i = 0; i<100; i++){
+       puts("");
+   }
+
+}
+
+
+void quit(){
+     exit(0);
+}
+
+void pause_a(){
+
+     char ENTER ='\n';
+     char input;
+
+     while(1){
+     scan(input)
+     if (input== ENTER){
+     break;	 
+     }
+     }
+     }
+
+void echo(char *input){
+     printf(input);	
+}
+
+void environ(char **env){
+     int index = 0;
+     while (env[index]!=NULL){
+     	   printf(env[index]);
+     	   index++;
+     }
+}
+
+void dir(char *argv){
+DIR *d;
+struct dirent dir;
+
+if (argv == ""){
+opendir("");
+}
+
+else
+{
+
+opendir(argv);
+
+}
+
+if (success){
+while(readdir(d) != NULL){
+printf(dirname);
+}
+closedir(d);
+
+}else{
+puts("an error occurred.");
+
+}
+}
+
+int cd(char *argv){
+
+char *buffer = malloc(path_max);
+char *resolved_path = real[ath(argv, buffer);
+char pwd = getenv("PWD");
+
+if (resolved_path == true){
+strcpy(pwd, resolved_path);
+}
+else{
+puts("error");
+}
+
+int new_dir = chdir(pwd);
+if (chdir(resolved_path)!=0){
+puts("directory might not exist!");
+}
+return new_dir;
+}
+
+------------------------------------------------------------------------------------------------------
+
+"handling.c"
+
+
+this chunk of code will try to deal with everything from piping to string handling.
+may probably rely on another .c file exclusive to string parsing.
+
+
+void function_start(){
+
+//This could describe an initial state for no reason other than organizational purposes.
+It may not exist when the lab is rewritten.
+
+scanf(char *some_string);
+
+//we should tokenize each string and check for errors
+
+str_process(some_string);
+
+if (str_process(some_string) == 0){
+//if command is successful
+handle_command(some_string);
+
+}else{
+printf("Error parsing string!");
+}
+
+}
+
+
+int handle_command(){
+
+//check for pipes and redirects
+//check for internal commands within the string
+//then check for external commands
+
+//THIS PART ASSUMES THAT THERE ARE NO ILLEGAL COMMANDS ATTACHED
+//THAT FUNCTIONALITY IS DEALT WITH IN str_process(some_string)!!!!!!!!!!!!!!
+//still need to decide how forking will work
+
+
+
+while(command!=NULL){
+handle_redirect(command);
+}
+
+
+int in_redirect(filename){
+
+fd *fd = open(filename, "r");
+if (fd!=0){
+dup2(fd, STD_IN);
+}else{
+printf("error");
+}
+
+
+}
+
+
+int out_redirect(filename){
+
+
+fd *fd = open(filename, "w");
+if (fd!=1){
+dup2(fd, STD_OUT);
+}else{
+printf("error");
+}
+
+
+}
+
+
+void handle_redirect(command){
+
+if (command[1] != NULL){
+   in_redirect(c);
+   }
+
+if (command[3] != NULL){
+   find_executable(command[3]);
+   }
+
+if (command[2] != NULL){
+   out_redirect(c);
+   }
+
+if (command[0] = inbuilt_funcs){
+   handle_inbuilt_funcs();
+   }
+
+else
+{
+
+exec(command[0]);
+
+}
+
+}
+   
+
+void handle_inbuilt_funcs(){
+
+   if ("ls args"){
+       	ls(args);
+       }
+    if ("cls"){
+       cls();
+       }
+    if ("pause_a"){
+       pause_a();
+       }
+    if ("echo args"){
+       echo(args);
+       }
+    if ("environ"){
+       environ(env);
+       }
+    if ("dir args"){
+       dir(args);
+       }
+    if ("cd args"){
+       cd(args);
+       }
+    if ("help args"){
+       help(args);
+       }else{
+       execv(filepath, args);
+}
+
+int find_executable(filename){
+
+ int pid = fork();
+
+if (pid == 0){
+execv(filename, pid);
+
+}else if (pid > 0){
+
+wait();
+print("Done");
+
+}
+
+}
+
+
+char **str_process(user_input){
+
+int i = 0;
+char **command_line;
+
+while (user_input!=NULL){
+
+//first alter the input based on whether pipes were found, deal with that
+tokenize(user_input, pipes);
+
+//then alter input based on redirects, also deal with that
+tokenize(user_input, file_redirects);
+
+//finally, handle whitespace
+tokenize(user_input, whitespace);
+
+}
+
+//the rest of the completely skinned command goes into an array of char*
+command_line = completely_tokenized_user_input;
+
+return command_line;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
