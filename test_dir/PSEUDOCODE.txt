@@ -190,6 +190,10 @@ if (command[1] != NULL){
    in_redirect(c);
    }
 
+if (command[3] != NULL){
+   find_executable(command[3]);
+   }
+
 if (command[2] != NULL){
    out_redirect(c);
    }
@@ -242,6 +246,7 @@ int find_executable(filename){
 
 if (pid == 0){
 execv(filename, pid);
+
 }else if (pid > 0){
 
 wait();
@@ -258,14 +263,12 @@ char **command_line;
 
 while (user_input!=NULL){
 
-char *command = strtok(user_input[i], "");
-command_line[i] = command;
-i++;
+char *tokenized = tokenize(user_input, pipes);
+tokenized = tokenize(user_input, file_redirects);
+tokenized = tokenize(user_input, whitespace);
 
+command_line[i] = tokenized;
 }
-
-//need a special case for I/O
-
 
 return command_line;
 }
