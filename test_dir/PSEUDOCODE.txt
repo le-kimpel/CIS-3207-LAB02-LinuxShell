@@ -111,20 +111,11 @@ return new_dir;
 
 ------------------------------------------------------------------------------------------------------
 
-"main.c"
+"handling.c"
 
 
-This chunk of code will attempt to describe the main function's basic operation.
-
-
-void function_start();
-int str_process();
-
-int main(){
-
-function_start();
-
-}
+this chunk of code will try to deal with everything from piping to string handling.
+may probably rely on another .c file exclusive to string parsing.
 
 
 void function_start(){
@@ -132,7 +123,7 @@ void function_start(){
 //This could describe an initial state for no reason other than organizational purposes.
 It may not exist when the lab is rewritten.
 
-scanf(char *user input, char **some_string);
+scanf(char *some_string);
 
 //we should tokenize each string and check for errors
 
@@ -157,15 +148,70 @@ int handle_command(){
 
 //THIS PART ASSUMES THAT THERE ARE NO ILLEGAL COMMANDS ATTACHED
 //THAT FUNCTIONALITY IS DEALT WITH IN str_process(some_string)!!!!!!!!!!!!!!
+//still need to decide how forking will work
 
-int index;
-while(some_string[index]!=NULL){
 
-if (">" || "<" || "|"){
-       handle_redirect(some_string[i], int fd1, fd2, ...., fdn);
-       }
-    if ("ls args"){
-       ls(args);
+
+while(command!=NULL){
+handle_redirect(command);
+}
+
+
+int in_redirect(filename){
+
+fd *fd = open(filename, "r");
+if (fd!=0){
+dup2(fd, STD_IN);
+}else{
+printf("error");
+}
+
+
+}
+
+
+int out_redirect(filename){
+
+
+fd *fd = open(filename, "w");
+if (fd!=1){
+dup2(fd, STD_OUT);
+}else{
+printf("error");
+}
+
+
+}
+
+
+void handle_redirect(command){
+
+if (command[1] != NULL){
+   in_redirect(c);
+   }
+
+if (command[2] != NULL){
+   out_redirect(c);
+   }
+
+if (command[0] = inbuilt_funcs){
+   handle_inbuilt_funcs();
+   }
+
+else
+{
+
+exec(command[0]);
+
+}
+
+}
+   
+
+void handle_inbuilt_funcs(){
+
+   if ("ls args"){
+       	ls(args);
        }
     if ("cls"){
        cls();
@@ -188,36 +234,59 @@ if (">" || "<" || "|"){
     if ("help args"){
        help(args);
        }
+}
 
+int find_executable(filename){
+
+ int pid = fork();
+
+if (pid == 0){
+execv(filename, pid);
+}else if (pid > 0){
+
+wait();
 
 }
 
-index++;
-
 }
 
 
-void handle_redirect(some_string[i], int fd){
+char **str_process(user_input){
 
-in order to handle infinite pipes, that means this section will need to
-take recusrion into account.
-Luckily, that functionality is going to be stored elsewhere, this method will just be calling
-those methods.
-The purpose of this method is to abstract some of the piping. It may be completely useless though.
+int i = 0;
+char **command_line;
 
+while (user_input!=NULL){
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+char *command = strtok(user_input[i], "");
+command_line[i] = command;
+i++;
 
 }
+
+//need a special case for I/O
+
+
+return command_line;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
