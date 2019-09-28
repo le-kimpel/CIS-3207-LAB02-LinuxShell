@@ -115,7 +115,9 @@ void function_start(){
 //This could describe an initial state for no reason other than organizational purposes.
 It may not exist when the lab is rewritten.
 
-scanf(char *some_string);
+char *input = (char*)malloc(100*sizeof(char));
+fgets(input, 100, stdin);
+
 
 //we should tokenize each string and check for errors
 
@@ -128,6 +130,44 @@ handle_command(some_string);
 }else{
 printf("Error parsing string!");
 }
+
+}
+
+//handles simple pipe functionality.
+//However, we still need to make this recursive
+//in order to handle "edge cases."
+
+void a_pipe(){
+
+int READ = 0;
+int WRITE = 1;
+int fd[1];
+
+pipe(fd);
+int pid = fork();
+
+//child
+if (pid == 0){
+
+  close(fd[WRITE]);
+  dup2(fd[READ], stdin);
+  handle_command(1);
+
+}else if (pid > 0){
+
+  close(fd[READ]);
+  dup2(fd[WRITE], stdout);
+  handle_command(0);
+
+}else{
+  puts("Error!");
+  }
+
+}
+
+
+
+
 
 }
 
@@ -174,6 +214,9 @@ printf("error");
 
 
 }
+
+//still not sure how to handle this until string gets
+parsed and sorted. Need to handle pipes as well.
 
 
 void handle_redirect(command){
@@ -253,25 +296,82 @@ print("Done");
 char **str_process(user_input){
 
 int i = 0;
-char **command_line;
 
-while (user_input!=NULL){
+//str_to_array processes char* and returns an array of char*.
+From there, individual elements should be inspected.
 
-//first alter the input based on whether pipes were found, deal with that
-tokenize(user_input, pipes);
+char **command_line = str_to_array(user_input);
 
-//then alter input based on redirects, also deal with that
-tokenize(user_input, file_redirects);
+while (command_line!=NULL){
 
-//finally, handle whitespace
-tokenize(user_input, whitespace);
+      handle_redirects(command_line);
+      handle_pipes(command_line);
+      handle_internals(command_line);
+
+
+}
+//returns sorted
+return command_line;
+}
+
+//trying to get started on running commands in background
+//the child process will wait until parent is finished
+
+void run_in_background(command){
+     int pid = fork();
+     if (pid == 0){
+     	wait();
+	}
+	else{
+	execv(program);
+		}
+
+
+------------------------------------------------------------------------------------------------------
+"strings.c"
+
+This is some pseudocode for the processing of string commands.
+
+Hypothetically, anything in this program should be passed in as either a char** or char*.
+
+a command will look like this:
+
+[Tomato potato tomato potato]
+
+and will be transformed into this:
+
+["Tomato", "potato", "tomato", "potato"]
+
+and from there, we will look at the different cases which warrant different responses (in handling.c)
+with the returned string.
+
+//This is for printing
+
+void print_str(){
+
+for (str : tokenized_str){
+
+    print(str);
+
+    }
+
 
 }
 
-//the rest of the completely skinned command goes into an array of char*
-command_line = completely_tokenized_user_input;
 
-return command_line;
+char **str_to_array(char *str){
+
+char **tokenized;
+int str_index = 0;
+char *token = strtok(str, " ");
+
+while (token isn't null){
+     tokenized[str_index++] = token;
+     token = strtok(NULL, " ");
+     }
+
+print_str(tokenized);
+return tokenized;
 }
 
 

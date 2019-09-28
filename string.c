@@ -3,9 +3,6 @@
 #include <unistd.h>
 #include <string.h>
 
-
-char *tok_whitespace(char *str);
-char *tok_redirect(char *str);
 char **str_to_array(char *str);
 void print_str(char **str);
 
