@@ -40,13 +40,14 @@ int exec_pracc(char *FILENAME){
     char *args[] = {"ls", NULL};
     char *args2[] = {"touch", "new.txt", NULL};
     char *args3[] = {"rm", "new.txt", NULL};
-    // char *args4[] = {"print_string()", NULL};
+    char *args4[] = {NULL};
     
-    execv("/bin/touch", args2);
-    execv("/bin/ls", args);
-    execv("/bin/rm", args3);
+    //execv("/bin/touch", args2);
+    //execv("/bin/ls", args);
+    execv("./a.out", args4);
 
-    // execv("/OS_LABS/LAB02/test_dir/b.c", args4);
+    printf("EXEC Failed\n");
+   
     
   }if (pid > 0){
 

@@ -1,0 +1,101 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+
+
+char *tok_whitespace(char *str);
+char *tok_redirect(char *str);
+char *tok_redirect2(char *str);
+void print_str(char **str);
+
+int main(){
+
+  char *input = (char*)malloc(100*sizeof(char));
+  printf("%s\n", "Enter a string:");
+
+  int len = 100;
+  fgets(input,len,stdin);
+  
+
+  tok_redirect2(input);
+  
+  
+
+}
+
+char *tok_redirect(char *str){
+
+  char *keys [] = {"<",">"};
+  char **tokenized = (char**)malloc(100*sizeof(char**));
+  
+  int token_str_index = 0;
+  int input_index = 0;
+  int char_index = 0;
+  int key_index = 0;
+
+  printf("%c\n", keys[0][0]);
+  printf("%c\n", keys[1][0]);
+  printf("%c\n", str[input_index]);
+  
+   while(str!=NULL){
+    
+    if (str[input_index] == keys[0][0] || str[input_index] == keys[1][0]){
+
+      // token_str_index++;
+      // input_index++;
+      // char_index = 0;
+      puts("found it!");
+    }
+    
+    // tokenized[token_str_index][char_index] = str[input_index];
+    input_index++;
+    char_index++;
+    
+  }
+ 
+}
+
+
+char *tok_redirect2(char *str){
+
+  char copy[strlen(str)];
+  strcpy(copy, str);
+  //printf("%s\n", copy);
+
+  char **tokenized = (char**)malloc(100*sizeof(char**));
+  char *token = strtok(copy, "<");
+
+  int str_index = 0;
+  int tok_str_num = 0;
+  int tok_char_num = 0;
+  int count = 0;
+  
+  while(str!=NULL){
+
+    count++;
+    if (str[str_index] == '<'){
+      puts("found it!");
+      str_index++;
+    }
+  }
+ print_str(tokenized);
+}
+void print_str(char **str){
+  
+  printf("%s", "{");
+  int i = 0;
+
+  while(str[i]!=NULL){
+    if (str[i+1]==NULL){
+      printf("%s", str[i]);
+    }else{
+      printf("%s%s", str[i], ",");
+    }
+    i++;
+     
+  }
+  printf("%s\n","}");
+
+}
+
