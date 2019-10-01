@@ -25,4 +25,5 @@ str *new_node();
 void enqueue(q *queue, char *element);
 char  *dequeue(q *queue);
 q *initialize_queue();
+char *get(q *queue, int index);
 #endif //LINKEDLIST_H

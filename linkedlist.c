@@ -22,8 +22,31 @@ _Bool QisEmpty(q *queue);
 str *new_node();
 void enqueue(q *queue, char *element);
 char  *dequeue(q *queue);
+char *get(q *queue, int index);
 q *initialize_queue();
 
+
+
+char *get(q *queue, int index){
+
+  str *current = queue->head;
+  
+  int flag = 0;
+  
+  while(current!=NULL){
+    
+    if (flag == index){
+      
+      return (current->element);
+    }
+    
+    flag++;
+    current = current->next;
+    
+  }
+  
+  return NULL;
+}
 q *initialize_queue(){
   
 q *queue = (q*)malloc(sizeof(q));
