@@ -6,12 +6,6 @@
 #include <dirent.h>
 //file to test inbuilt functions
 
-/* 
-TO DO: 
-help
-learn how to fork, exec, pipe
-
-*/
 
 //clears the screen
 void cls ();
@@ -29,15 +23,31 @@ void dir(char *argv);
 int  cd(char *argv);
 //gets the help manual
 void help(char *argv);
+//main interface for executing internal commands
+void menu(char *argc, char **argv, char **env);
 
 int main(char * argc, char ** argv, char **env){
  
-  environ(env);
-  
+  menu(argc, argv, env);
   
   return 0;
+
 }
 
+
+void menu(char *argc, char **argv, char **env){
+  
+  if (strcmp(argv[0], "cls") == 0){
+    cls();
+  }
+  
+  else if (strcmp(argv[0], "environ") == 0){
+    environ(env);
+    
+  }else{
+    puts("error");
+  }
+}
 
 void cls(){
   for (int i = 0; i< 100; i++){
@@ -142,3 +152,4 @@ void help(char *argv){
 
 
   }
+

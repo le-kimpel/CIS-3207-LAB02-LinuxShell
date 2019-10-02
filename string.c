@@ -5,10 +5,18 @@
 #include "linkedlist.h"
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
-//next i need to handle PIPES. LIKE TODAY
-//child -> parent
-//parent then goes back and handles itself once more with an updated list
+/*
+  -----------------
+  | UPDATE NOTES: |
+  -----------------
+-still need to verify whether this program forks correctly in pipe_cmd
+-need to figure out how to exec internal funcs in handle_internal_cmd
+
+*/
+
 //function prototypes
 char **str_to_array(char *str);
 q *tok_pipes(q *parent_list, char **str);
@@ -18,6 +26,9 @@ q *pipe_cmd(q *parent_list, char **str);
 void print_str(char **str);
 void print_q(q *command_list);
 void handle(q *pipe_list);
+void handle_internal_cmd(char *command);
+void in_redirect_cmd(char *FILENAME); 
+void out_redirect_cmd(char *FILENAME);
 
 //main method for testing
 int main(){
@@ -26,11 +37,33 @@ int main(){
   printf("%s\n", "Enter a string:");
   int len = 100;
   fgets(input,len,stdin);
-  char **temp = str_to_array(input);
-  //  q *temp2 = tok_pipes(temp);
-  //tok_in_redirects(temp2);
-  q *temp3 = str_to_linkedlist(temp);
-  pipe_cmd(temp3, temp);
+  char **temp = str_to_array(input);  
+}
+
+void out_redirect_cmd(char *FILENAME){
+
+  int fd = open(FILENAME, O_WRONLY);
+
+  if (fd!=0){
+    dup2(fd, 1);
+  }else{
+    puts("error forming out-redirect!");
+  }
+  
+  
+}
+
+void in_redirect_cmd(char *FILENAME){
+
+  int fd = open(FILENAME, O_RDONLY);
+  
+  if (fd!= 0){
+    dup2(fd, 0);
+    
+  }else{
+    puts("error forming in-redirect!");
+  }
+  
 }
 
 //converts a char * into char ** separated by whitespace
@@ -125,7 +158,7 @@ q *pipe_cmd(q *parent_list, char **str){
     close(fd[WRITE]);
 
     dup2(fd[READ], 0);
-
+    
   }
 
 }
@@ -193,20 +226,16 @@ q *tok_pipes(q *parent_list, char **str){
    
     i++;
   }
-
+  
   //if there are no pipe commands
   if (get(parent_list,i) == NULL){
-
+    
     parent_list = pipe_list;
-
+    
   }
-  
-  //prints output for debugging
-  //print_q(pipe_list);
   
   return pipe_list;
   
-
 }
 
 //print to string for debugging purposes
@@ -222,14 +251,15 @@ void print_str(char **str){
       printf("%s%s", str[i], "}");
       
     }else{
+
       printf("%s%s", str[i], ",");
+      
     }
 
     i++;
      
   }
   
-
 }
 
 //function to print the list for debugging
@@ -262,3 +292,13 @@ q *str_to_linkedlist(char **str){
   
   return command_list;
 }
+
+//function to handle and verify internal commands
+//as well as  execute them
+void handle_internal_cmd(char *command){
+
+ 
+
+}
+
+
