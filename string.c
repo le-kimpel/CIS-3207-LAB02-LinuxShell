@@ -38,6 +38,9 @@ int main(){
   int len = 100;
   fgets(input,len,stdin);
   char **temp = str_to_array(input);  
+  q *temp2 = str_to_linkedlist(temp);
+   pipe_cmd(temp2, temp);
+ 
 }
 
 void out_redirect_cmd(char *FILENAME){
@@ -89,32 +92,18 @@ char **str_to_array(char *str){
 //currently using this method to debug the pipe method
 void handle(q *pipe_list){
 
-  //if there is a valid command in the list
-  if (get(pipe_list, 0) != NULL){
-    puts("Is a command");
-  }
-  
-  //if there is a valid in_redirect in the list
-  if (get(pipe_list, 1) != NULL){
-    puts("Is an in-redirect");
-  }
-  
-  //if there is a valid out_redirect in the list
-  if (get(pipe_list, 2) !=NULL){
-    puts("Is an out-redirect");
-    
-  }else{
-    puts("idek how to categorize this lmao");
-    
-  }
-    
+  char *args[] = {NULL};
+  printf("%d\n", execv(get(pipe_list, 0), args));
+ 
 }
+
 //supposedly handles the pipes
 
 q *pipe_cmd(q *parent_list, char **str){
   
   //produce a list that handles up to first end of pipe
   q *pipe_list = (tok_pipes(parent_list, str));
+
   
   //ints for file descriptor
   int READ = 0;
@@ -130,13 +119,15 @@ q *pipe_cmd(q *parent_list, char **str){
     
     exit(0);
   }
+
   
   //base case for recursive condition: no pipes left
-  if (parent_list == NULL){
+  if (parent_list->size == 0){
 
     puts("parent null, no pipes left!");
-
+    
   }
+
   
   //process ID
   int pid = fork();
@@ -151,16 +142,23 @@ q *pipe_cmd(q *parent_list, char **str){
     dup2(fd[WRITE], 1);
 
     handle(pipe_list);
-
+    
    //parent process takes the parent list
   }else if (pid > 0){
 
-    close(fd[WRITE]);
-
-    dup2(fd[READ], 0);
+    wait(NULL);
     
-  }
+    close(fd[WRITE]);
+    
+    dup2(fd[READ], 0);
 
+    char *args[] = {NULL};
+
+   
+     execv(get(parent_list, 1), args);
+    
+   }
+  
 }
 
 
@@ -207,8 +205,7 @@ q *tok_pipes(q *parent_list, char **str){
   int i = 0;
   //list of currently active pipes
   q *pipe_list = initialize_queue();
- 
-
+  
   while (str[i]!=NULL){
 
     //compares at every node    
@@ -230,10 +227,10 @@ q *tok_pipes(q *parent_list, char **str){
   //if there are no pipe commands
   if (get(parent_list,i) == NULL){
     
-    parent_list = pipe_list;
+    // parent_list = pipe_list;
     
   }
-  
+
   return pipe_list;
   
 }
@@ -264,12 +261,13 @@ void print_str(char **str){
 
 //function to print the list for debugging
 void print_q(q *command_list){
+
+  int i = 0;
   
-  for (int i = command_list->size; i>0; i--){
-    
-    char *entry = dequeue(command_list);   
-    
-    printf("%s%s%s","[", entry,"]");
+  while (get(command_list, i)!=NULL){
+    char * entry = get(command_list, i);
+    printf("%s%s%s", "[", entry, "]");
+    i++;
   }
   
   puts("");
@@ -289,7 +287,7 @@ q *str_to_linkedlist(char **str){
     i++;
 
   }
-  
+ 
   return command_list;
 }
 

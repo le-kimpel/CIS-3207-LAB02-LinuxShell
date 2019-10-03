@@ -44,8 +44,7 @@ char *get(q *queue, int index){
     current = current->next;
     
   }
-  
-  return NULL;
+ 
 }
 q *initialize_queue(){
   
