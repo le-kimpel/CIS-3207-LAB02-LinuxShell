@@ -74,15 +74,25 @@ char **str_to_array(char *str){
   
   char **tokenized = (char**)malloc(100*sizeof(char**));
   int str_index = 0;
-  char *token = strtok(str, " ");
+ 
+  int i = 0;
+
+  char example[11] = "Hello there";
   
+  char *token = strtok(str, " ");
+
   while(token!=NULL){
     
     tokenized[str_index++] = token;
-    
+    i++;
     token = strtok(NULL, " ");
     
   }
+
+  //ascribing a null teriminating character 
+  int len = strlen(tokenized[str_index-1]);
+  
+  tokenized[str_index-1][len-1] = '\0';
   
   return tokenized;
   
@@ -238,8 +248,10 @@ q *tok_pipes(q *parent_list, char **str){
     
     i++;
   }
-  
-  
+
+  //dequeue to get rid of extra pipe character
+  dequeue(parent_list);
+
   return pipe_list;
   
 }
@@ -306,19 +318,33 @@ void handle_internal_cmd(q *command){
   
   //exec in internal.c
   
-  char *args[];
+  char *args[100];
   
   int i = 0;
+ 
+  int pid = fork();
   
   while(get(command, i)!=NULL){
     
     args[i] = get(command, i);
+    i++;
+  }
+
+  args[i] = NULL;
+  
+  //if the command is an internal command
+  if (pid == 0){
+    
+    printf("%d\n", execv("./internal", args));
+    
+    //if the command is not an internal command
+  }else if (pid > 0){
+
+    wait(NULL);
+    printf("%d\n", execv(get(command,0), args));
     
   }
-  
-  printf("%d\n", execv("./internal", args));
-  
-  
+
 }
 
 

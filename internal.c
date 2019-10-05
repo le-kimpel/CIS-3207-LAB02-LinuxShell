@@ -46,10 +46,22 @@ void menu(char *argc, char **argv, char **env){
   }
   
   else if (strcmp(argv[0], "cd") == 0){
-    puts("here");
-    
-  }else{
+    cd(argv[1]);
+  }
+
+  else if (strcmp(argv[0], "dir") == 0){
+    dir(argv[1]);
+  }
+  
+  else if (strcmp(argv[0], "echo") == 0){
+    echo(argv[1]);
+  }
    
+  else if (strcmp(argv[0], "quit") == 0){
+    quit();
+  
+  }else{
+    puts("Error");
   }
 }
 
@@ -99,7 +111,7 @@ void dir(char *argv){
   struct dirent *dir;
   
   //if no commands attached
-  if (argv == ""){
+  if (argv == "" || argv == " " || argv == NULL){
     d = opendir(".");
     
   }else{
@@ -116,7 +128,7 @@ void dir(char *argv){
 
     //failure
   }else{  
-    puts("An error occurred.");
+    puts("An error occurred executing dir.");
   }
   
 }
