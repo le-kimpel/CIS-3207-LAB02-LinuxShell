@@ -12,7 +12,7 @@
   -----------------
   | UPDATE NOTES: |
   -----------------
--still need to verify whether this program forks correctly in pipe_cmd
+
 -need to figure out how to exec internal funcs in handle_internal_cmd
 
 */
@@ -26,7 +26,7 @@ q *pipe_cmd(q *parent_list, char **str);
 void print_str(char **str);
 void print_q(q *command_list);
 void handle(q *pipe_list);
-void handle_internal_cmd(char *command);
+void handle_internal_cmd(q *command);
 void in_redirect_cmd(char *FILENAME); 
 void out_redirect_cmd(char *FILENAME);
 
@@ -93,8 +93,21 @@ char **str_to_array(char *str){
 void handle(q *pipe_list){
 
   char *args[] = {NULL};
-  printf("%d\n", execv(get(pipe_list, 0), args));
+
+  if (get(pipe_list, 0)!=NULL){
+    handle_internal_cmd(pipe_list);
+    
+  }else if (get(pipe_list, 1)!=NULL){
+    in_redirect_cmd(get(pipe_list,1));
+
+  }else if (get(pipe_list, 2)!=NULL){
+    out_redirect_cmd(get(pipe_list,2));
+
+  }else{
+    execv(get(pipe_list, 0), args);
+  }
  
+  
 }
 
 //supposedly handles the pipes
@@ -125,37 +138,39 @@ q *pipe_cmd(q *parent_list, char **str){
   if (parent_list->size == 0){
 
     puts("parent null, no pipes left!");
-    
-  }
 
+    print_q(pipe_list);
+    
+    handle(pipe_list);
+  }
+  
   
   //process ID
   int pid = fork();
-
+  
   //child process handles the pipe
   if (pid == 0){
-
+    
     puts("We are in the child!");
-
+    
     close(fd[READ]);
-
+    
     dup2(fd[WRITE], 1);
-
+    
     handle(pipe_list);
     
    //parent process takes the parent list
   }else if (pid > 0){
-
+    
     wait(NULL);
     
     close(fd[WRITE]);
     
     dup2(fd[READ], 0);
-
+    
     char *args[] = {NULL};
-
-   
-     execv(get(parent_list, 1), args);
+    
+    handle(parent_list);
     
    }
   
@@ -164,73 +179,67 @@ q *pipe_cmd(q *parent_list, char **str){
 
 //tokenizes and sorts in-redirects and out-redirects
 q *tok_in_redirects(q *parent_list){
-
+  
   //counter for parent list index
   int i = 0;
-
+  
   //counter for updating parent list
   int count = 0;
-
+  
   //list of in redirects
   q *in_redirect_list = initialize_queue();
   
   while (get(parent_list, i)!=NULL){
-     
-     if (strcmp(get(parent_list, i), ">") == 0){
-      
-      break;
-    }
     
-    enqueue(in_redirect_list, get(parent_list, i));
+    if (strcmp(get(parent_list, i), ">") == 0){
+       
+       break;
+     }
+     
+     enqueue(in_redirect_list, get(parent_list, i));
     
     i++;    
-
+    
    }
     
    //update the parent list
-   while(count < i){
+  while(count < i){
+    
+    dequeue(parent_list);
+    
+    count++;
+  }
      
-     dequeue(parent_list);
-     
-     count++;
-   }
-     
-   return parent_list;
+  return parent_list;
 }
 
 //function sort through a **str and return a list of elements to recursively pipe
 q *tok_pipes(q *parent_list, char **str){
-
+  
   //counter
   int i = 0;
   //list of currently active pipes
   q *pipe_list = initialize_queue();
   
   while (str[i]!=NULL){
-
+    
     //compares at every node    
-   if (strcmp(str[i],"|")==0){     
+    if (strcmp(str[i],"|")==0){     
       
-    break;
-
+      break;
+      
     }
-   
-   //otherwise enqueue each preceding element
+    
+    //otherwise enqueue each preceding element
     enqueue(pipe_list,str[i]);
-
+    
     //dequeue the preceding elements so we are left with those post-pipe 
     dequeue(parent_list);
-   
+    
     i++;
   }
   
-  //if there are no pipe commands
-  if (get(parent_list,i) == NULL){
-    
-    // parent_list = pipe_list;
-    
-  }
-
+  
   return pipe_list;
   
 }
@@ -240,28 +249,28 @@ void print_str(char **str){
   
   printf("%s", "{");
   int i = 0;
-
+  
   while(str[i]!=NULL){
-
+    
     if (str[i+1]==NULL){
 
       printf("%s%s", str[i], "}");
       
     }else{
-
+      
       printf("%s%s", str[i], ",");
       
     }
-
+    
     i++;
-     
+    
   }
   
 }
 
 //function to print the list for debugging
 void print_q(q *command_list){
-
+  
   int i = 0;
   
   while (get(command_list, i)!=NULL){
@@ -276,27 +285,40 @@ void print_q(q *command_list){
 
 //testing area for a hypothetical conversion to linkedlist
 q *str_to_linkedlist(char **str){
-
+  
   q * command_list = initialize_queue();
   int i = 0;
-
+  
   while(str[i]!=NULL){
-
+    
     enqueue(command_list, str[i]);
-
+    
     i++;
-
+    
   }
- 
+  
   return command_list;
 }
 
 //function to handle and verify internal commands
 //as well as  execute them
-void handle_internal_cmd(char *command){
-
- 
-
+void handle_internal_cmd(q *command){
+  
+  //exec in internal.c
+  
+  char *args[];
+  
+  int i = 0;
+  
+  while(get(command, i)!=NULL){
+    
+    args[i] = get(command, i);
+    
+  }
+  
+  printf("%d\n", execv("./internal", args));
+  
+  
 }
 
 

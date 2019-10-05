@@ -28,8 +28,8 @@ void menu(char *argc, char **argv, char **env);
 
 int main(char * argc, char ** argv, char **env){
  
-  menu(argc, argv, env);
-  
+   menu(argc, argv, env);
+
   return 0;
 
 }
@@ -43,9 +43,13 @@ void menu(char *argc, char **argv, char **env){
   
   else if (strcmp(argv[0], "environ") == 0){
     environ(env);
+  }
+  
+  else if (strcmp(argv[0], "cd") == 0){
+    puts("here");
     
   }else{
-    puts("error");
+   
   }
 }
 
@@ -125,6 +129,8 @@ int cd(char *argv){
   char *resolved_path = realpath(argv, buf);  
   //working directory
   char *pwd = getenv("PWD");
+
+  
   
   if (resolved_path){
     //copies the resolved path into the pwd string
