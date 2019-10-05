@@ -61,7 +61,7 @@ void menu(char *argc, char **argv, char **env){
     quit();
   
   }else{
-    puts("Error");
+    puts("ERROR: cannot find internal command");
   }
 }
 

@@ -13,7 +13,8 @@
   | UPDATE NOTES: |
   -----------------
 
--need to figure out how to exec internal funcs in handle_internal_cmd
+-now i need to handle redirects accordingly
+-and start writing better error messages
 
 */
 
@@ -43,6 +44,7 @@ int main(){
  
 }
 
+//sets output to a file
 void out_redirect_cmd(char *FILENAME){
 
   int fd = open(FILENAME, O_WRONLY);
@@ -50,12 +52,12 @@ void out_redirect_cmd(char *FILENAME){
   if (fd!=0){
     dup2(fd, 1);
   }else{
-    puts("error forming out-redirect!");
+    puts("ERROR: cannot form out-redirect!");
   }
-  
   
 }
 
+//sets input from a file
 void in_redirect_cmd(char *FILENAME){
 
   int fd = open(FILENAME, O_RDONLY);
@@ -64,7 +66,7 @@ void in_redirect_cmd(char *FILENAME){
     dup2(fd, 0);
     
   }else{
-    puts("error forming in-redirect!");
+    puts("ERROR: cannot form in-redirect!");
   }
   
 }
@@ -74,11 +76,7 @@ char **str_to_array(char *str){
   
   char **tokenized = (char**)malloc(100*sizeof(char**));
   int str_index = 0;
- 
   int i = 0;
-
-  char example[11] = "Hello there";
-  
   char *token = strtok(str, " ");
 
   while(token!=NULL){
@@ -104,20 +102,18 @@ void handle(q *pipe_list){
 
   char *args[] = {NULL};
 
+  //if command
   if (get(pipe_list, 0)!=NULL){
     handle_internal_cmd(pipe_list);
-    
+  
   }else if (get(pipe_list, 1)!=NULL){
     in_redirect_cmd(get(pipe_list,1));
 
   }else if (get(pipe_list, 2)!=NULL){
     out_redirect_cmd(get(pipe_list,2));
 
-  }else{
-    execv(get(pipe_list, 0), args);
   }
  
-  
 }
 
 //supposedly handles the pipes
@@ -143,25 +139,17 @@ q *pipe_cmd(q *parent_list, char **str){
     exit(0);
   }
 
-  
   //base case for recursive condition: no pipes left
   if (parent_list->size == 0){
-
-    puts("parent null, no pipes left!");
-
-    print_q(pipe_list);
     
     handle(pipe_list);
   }
-  
   
   //process ID
   int pid = fork();
   
   //child process handles the pipe
   if (pid == 0){
-    
-    puts("We are in the child!");
     
     close(fd[READ]);
     
@@ -202,24 +190,24 @@ q *tok_in_redirects(q *parent_list){
   while (get(parent_list, i)!=NULL){
     
     if (strcmp(get(parent_list, i), ">") == 0){
-       
-       break;
-     }
-     
-     enqueue(in_redirect_list, get(parent_list, i));
+      
+      break;
+    }
+    
+    enqueue(in_redirect_list, get(parent_list, i));
     
     i++;    
     
-   }
-    
-   //update the parent list
+  }
+  
+  //update the parent list
   while(count < i){
     
     dequeue(parent_list);
     
     count++;
   }
-     
+  
   return parent_list;
 }
 
@@ -339,10 +327,15 @@ void handle_internal_cmd(q *command){
     
     //if the command is not an internal command
   }else if (pid > 0){
-
-    wait(NULL);
-    printf("%d\n", execv(get(command,0), args));
     
+    wait(NULL);
+    
+    if (execv(get(command,0), args) < 0){
+      puts("ERROR: Could not recognize input as an internal command or batch file.");
+    }
+
+    execv(get(command,0), args);
+
   }
 
 }
