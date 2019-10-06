@@ -19,7 +19,6 @@
 //function prototypes
 char **str_to_array(char *str);
 q *tok_pipes(q *parent_list, char **str);
-q *tok_in_redirects(q *parent_list);
 q *str_to_linkedlist(char **str);
 q *pipe_cmd(q *parent_list, char **str);
 void print_str(char **str);
@@ -28,11 +27,12 @@ void handle(q *pipe_list);
 void handle_internal_cmd(q *command);
 void in_redirect_cmd(char *FILENAME); 
 void out_redirect_cmd(char *FILENAME);
+void handle_redirects(q *command);
 
 //main method for testing
 int main(){
   
-  char *input = (char*)malloc(100*sizeof(char));
+  char *input = (char*)malloc(100000*sizeof(char));
   printf("%s\n", "Enter a string:");
   int len = 100;
   fgets(input,len,stdin);
@@ -98,20 +98,11 @@ char **str_to_array(char *str){
 //currently using this method to debug the pipe method
 void handle(q *pipe_list){
 
-  char *args[] = {NULL};
-
   //if command
    if (get(pipe_list, 0)!=NULL){
      handle_internal_cmd(pipe_list);
+     handle_redirects(pipe_list);
    }
-  // }else if (get(pipe_list, 1)!=NULL){
-    // in_redirect_cmd(get(pipe_list,1));
-
-  // }else if (get(pipe_list, 2)!=NULL){
-    // out_redirect_cmd(get(pipe_list,2));
-
-
- 
 }
 
 //supposedly handles the pipes
@@ -172,42 +163,6 @@ q *pipe_cmd(q *parent_list, char **str){
   
 }
 
-
-//tokenizes and sorts in-redirects and out-redirects
-q *tok_in_redirects(q *parent_list){
-  
-  //counter for parent list index
-  int i = 0;
-  
-  //counter for updating parent list
-  int count = 0;
-  
-  //list of in redirects
-  q *in_redirect_list = initialize_queue();
-  
-  while (get(parent_list, i)!=NULL){
-    
-    if (strcmp(get(parent_list, i), ">") == 0){
-      
-      break;
-    }
-    
-    enqueue(in_redirect_list, get(parent_list, i));
-    
-    i++;    
-    
-  }
-  
-  //update the parent list
-  while(count < i){
-    
-    dequeue(parent_list);
-    
-    count++;
-  }
-  
-  return parent_list;
-}
 
 //function sort through a **str and return a list of elements to recursively pipe
 q *tok_pipes(q *parent_list, char **str){
@@ -330,8 +285,43 @@ void handle_internal_cmd(q *command){
     
     char *args1[] = {NULL};
    
-    printf("%d\n",(get(command,0), args1));
+    printf("%d\n", execv(get(command,0), args1));
 
   }
 
 }
+
+void handle_redirects(q *command){
+
+  //  int pid = fork();
+
+  int i = 0;
+  int IN_FLAG;
+  int OUT_FLAG;
+
+while (get(command, i)!=NULL){
+
+    if (strcmp(get(command,i), ">") == 0){
+      OUT_FLAG = 0;
+      IN_FLAG = 1;
+      break;
+
+    }else if (strcmp(get(command,i),"<") == 0){
+      IN_FLAG = 0;
+      OUT_FLAG = 1;
+      break;
+
+    }
+
+    i++;
+
+      }
+
+  if (IN_FLAG == 0){
+    in_redirect_cmd(get(command,i-1));
+  }else if (OUT_FLAG == 0){
+    out_redirect_cmd(get(command, i-1));
+  }
+
+    
+  }
