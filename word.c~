@@ -1,0 +1,11 @@
+#include <stdio.h>
+
+
+int main(){
+
+  puts("I have to fart.");
+
+
+  return 0;
+
+}

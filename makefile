@@ -1,11 +1,11 @@
 CFLAGS = -g
 
-objects = linkedlist.o string.o 
+objects = linkedlist.o new.o 
 
 str : $(objects)
 	cc -o str $(objects)
 
-string.o : linkedlist.h
+new.o : linkedlist.h
 
 .PHONY : clean
 clean :

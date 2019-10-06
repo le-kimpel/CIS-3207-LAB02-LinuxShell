@@ -24,7 +24,7 @@ int  cd(char *argv);
 //gets the help manual
 void help(char *argv);
 //main interface for executing internal commands
-void menu(char *argc, char **argv, char **env);
+int menu(char *argc, char **argv, char **env);
 
 int main(char * argc, char ** argv, char **env){
  
@@ -35,7 +35,7 @@ int main(char * argc, char ** argv, char **env){
 }
 
 
-void menu(char *argc, char **argv, char **env){
+int menu(char *argc, char **argv, char **env){
   
   if (strcmp(argv[0], "cls") == 0){
     cls();
@@ -61,7 +61,7 @@ void menu(char *argc, char **argv, char **env){
     quit();
   
   }else{
-    puts("ERROR: cannot find internal command");
+    return 1;
   }
 }
 

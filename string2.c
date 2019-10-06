@@ -30,6 +30,9 @@ void handle(q *pipe_list);
 void handle_internal_cmd(q *command);
 void in_redirect_cmd(char *FILENAME); 
 void out_redirect_cmd(char *FILENAME);
+void handle_executable(q *command);
+void handle_redirects(q *command);
+
 
 //main method for testing
 int main(){
@@ -40,15 +43,15 @@ int main(){
   fgets(input,len,stdin);
   char **temp = str_to_array(input);  
   q *temp2 = str_to_linkedlist(temp);
-   pipe_cmd(temp2, temp);
- 
+  pipe_cmd(temp2, temp);
+   
 }
 
 //sets output to a file
 void out_redirect_cmd(char *FILENAME){
 
   int fd = open(FILENAME, O_WRONLY);
-
+  
   if (fd!=0){
     dup2(fd, 1);
   }else{
@@ -61,14 +64,14 @@ void out_redirect_cmd(char *FILENAME){
 void in_redirect_cmd(char *FILENAME){
 
   int fd = open(FILENAME, O_RDONLY);
-  
+ 
   if (fd!= 0){
     dup2(fd, 0);
     
   }else{
     puts("ERROR: cannot form in-redirect!");
   }
-  
+
 }
 
 //converts a char * into char ** separated by whitespace
@@ -100,19 +103,9 @@ char **str_to_array(char *str){
 //currently using this method to debug the pipe method
 void handle(q *pipe_list){
 
-  char *args[] = {NULL};
-
-  //if command
-  if (get(pipe_list, 0)!=NULL){
-    handle_internal_cmd(pipe_list);
+  print_q(pipe_list);
+  handle_internal_cmd(pipe_list);
   
-  }else if (get(pipe_list, 1)!=NULL){
-    in_redirect_cmd(get(pipe_list,1));
-
-  }else if (get(pipe_list, 2)!=NULL){
-    out_redirect_cmd(get(pipe_list,2));
-
-  }
  
 }
 
@@ -122,7 +115,7 @@ q *pipe_cmd(q *parent_list, char **str){
   
   //produce a list that handles up to first end of pipe
   q *pipe_list = (tok_pipes(parent_list, str));
-
+  
   
   //ints for file descriptor
   int READ = 0;
@@ -154,7 +147,7 @@ q *pipe_cmd(q *parent_list, char **str){
     close(fd[READ]);
     
     dup2(fd[WRITE], 1);
-    
+
     handle(pipe_list);
     
    //parent process takes the parent list
@@ -166,49 +159,10 @@ q *pipe_cmd(q *parent_list, char **str){
     
     dup2(fd[READ], 0);
     
-    char *args[] = {NULL};
-    
     handle(parent_list);
     
    }
   
-}
-
-
-//tokenizes and sorts in-redirects and out-redirects
-q *tok_in_redirects(q *parent_list){
-  
-  //counter for parent list index
-  int i = 0;
-  
-  //counter for updating parent list
-  int count = 0;
-  
-  //list of in redirects
-  q *in_redirect_list = initialize_queue();
-  
-  while (get(parent_list, i)!=NULL){
-    
-    if (strcmp(get(parent_list, i), ">") == 0){
-      
-      break;
-    }
-    
-    enqueue(in_redirect_list, get(parent_list, i));
-    
-    i++;    
-    
-  }
-  
-  //update the parent list
-  while(count < i){
-    
-    dequeue(parent_list);
-    
-    count++;
-  }
-  
-  return parent_list;
 }
 
 //function sort through a **str and return a list of elements to recursively pipe
@@ -239,7 +193,7 @@ q *tok_pipes(q *parent_list, char **str){
 
   //dequeue to get rid of extra pipe character
   dequeue(parent_list);
-
+  
   return pipe_list;
   
 }
@@ -311,7 +265,8 @@ void handle_internal_cmd(q *command){
   int i = 0;
  
   int pid = fork();
-  
+
+  //fill args in case of weird arguments
   while(get(command, i)!=NULL){
     
     args[i] = get(command, i);
@@ -323,21 +278,74 @@ void handle_internal_cmd(q *command){
   //if the command is an internal command
   if (pid == 0){
     
-    printf("%d\n", execv("./internal", args));
+    execv("./internal", args);
     
     //if the command is not an internal command
-  }else if (pid > 0){
+  }if (pid > 0){
     
     wait(NULL);
     
-    if (execv(get(command,0), args) < 0){
-      puts("ERROR: Could not recognize input as an internal command or batch file.");
-    }
-
-    execv(get(command,0), args);
-
+    handle_executable(command);
+  
   }
+}
+
+void handle_executable(q *command){
+  
+  int pid = fork();
+  char *args[] = {NULL};
+
+  
+  if (pid == 0){
+      
+   execv(get(command,0), args);    
+      
+    }
+  
+  
+  if (pid > 0){ 
+    
+    wait(NULL);
+  
+    puts("end loop");
+    
+ }
 
 }
 
 
+void handle_redirects(q *command){
+
+  //  int pid = fork();
+
+  int i = 0;
+  int IN_FLAG;
+  int OUT_FLAG;
+
+  while (get(command, i)!=NULL){
+
+    if (strcmp(get(command,i), ">") == 0){
+      OUT_FLAG = 0;
+      IN_FLAG = 1;
+      break;
+
+    }else if (strcmp(get(command,i),"<") == 0){
+      IN_FLAG = 0;
+      OUT_FLAG = 1;
+      break;
+
+    }
+
+    i++;
+
+      }
+
+  if (IN_FLAG == 0){
+    in_redirect_cmd(get(command,i-1));
+  }else if (OUT_FLAG == 0){
+    out_redirect_cmd(get(command, i-1));
+  }
+
+    
+  }
+  
