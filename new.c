@@ -14,6 +14,15 @@
   -----------------
 -now i need to handle redirects accordingly
 -and start writing better error messages
+-also, i need to teach it to handle ambiguous input redirects
+
+BUGS:
+
+-shady input doesn't give errors
+-doesn't like exec at all (this is probably because there is no 
+point in forking within this program - so we should probably move
+it to main)
+
 */
 
 //function prototypes
@@ -29,19 +38,38 @@ void in_redirect_cmd(char *FILENAME);
 void out_redirect_cmd(char *FILENAME);
 void handle_redirects(q *command);
 
-//main method for testing
 int main(){
-  
-  char *input = (char*)malloc(100000*sizeof(char));
-  printf("%s\n", "Enter a string:");
-  int len = 100;
-  fgets(input,len,stdin);
-  char **temp = str_to_array(input);  
-  q *temp2 = str_to_linkedlist(temp);
-  pipe_cmd(temp2, temp);
- 
-}
 
+   char *input = (char*)malloc(256*sizeof(char));
+   int pid = fork();
+
+   //testing the while true loop!
+   while(1){
+   
+    printf("%s", "MyShell>");
+    int len = 100;
+    fgets(input,len,stdin);
+    char **temp = str_to_array(input);
+    q *temp2 = str_to_linkedlist(temp);
+
+    if (pid == 0){
+
+      pipe_cmd(temp2,temp);
+
+    }if (pid > 0){
+      wait(NULL);
+    }
+    
+    if (strcmp(input, "exit") == 0){
+      exit(0);
+    }
+    
+   }
+  
+  
+  return 0;
+}
+  
 //sets output to a file
 void out_redirect_cmd(char *FILENAME){
 
