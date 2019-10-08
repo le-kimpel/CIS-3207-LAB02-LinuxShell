@@ -7,7 +7,7 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-
+#include "internal.h"
 /*
   -----------------
   | UPDATE NOTES: |
@@ -38,10 +38,13 @@ void in_redirect_cmd(char *FILENAME);
 void out_redirect_cmd(char *FILENAME);
 void handle_redirects(q *command);
 
-int main(char *c, char**argv){
-   
+char **env;
+
+int main(char *c, char**argv, char **environ){
+  
   char *input = argv[0];
 
+  env = environ;
   
   // converting input to 2d array
   char **temp = str_to_array(input);
@@ -158,7 +161,9 @@ q *pipe_cmd(q *parent_list, char **str){
 
   //base case for recursive condition: no pipes left
   if (parent_list->size == 0){
+    printf("PARENT\n");
     handle(pipe_list);
+    return 0;
   }
   
   //process ID
@@ -166,6 +171,7 @@ q *pipe_cmd(q *parent_list, char **str){
   
   //child process handles the pipe
   if (pid == 0){
+    printf("CHILD\n");
     close(fd[READ]);
     
     dup2(fd[WRITE], 1);
@@ -288,8 +294,6 @@ void handle_internal_cmd(q *command){
   
   int i = 0;
  
-  int pid = fork();
-  
   while(get(command, i)!=NULL){
     
     args[i] = get(command, i);
@@ -299,20 +303,14 @@ void handle_internal_cmd(q *command){
   args[i] = NULL;
   
   //if the command is an internal command
-  if (pid == 0){
-    
-    printf("%d\n", execv("./internal", args));
-    
-    //if the command is not an internal command
-  }if (pid > 0){
-   
-    wait(NULL);
-    
-    char *args1[] = {NULL};
-   
-    printf("%d\n", execv(get(command,0), args1));
 
- }
+  print_str(args);
+  
+  int res = menu(args, env);
+  
+  if(res == 1){
+    printf("%d\n", execvp(get(command,0), args));
+  }
 }
 
 void handle_redirects(q *command){

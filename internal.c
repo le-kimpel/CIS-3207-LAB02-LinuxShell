@@ -10,7 +10,7 @@
 //clears the screen
 void cls ();
 //exits the shell
-void quit();
+int quit();
 //pauses the shell until "Enter" is pushed
 void pause_a();
 //echoes the most recently printed statement
@@ -24,8 +24,8 @@ int  cd(char *argv);
 //gets the help manual
 void help(char *argv);
 //main interface for executing internal commands
-int menu(char *argc, char **argv, char **env);
-
+int menu(char **argv, char **env);
+/*
 int main(char * argc, char ** argv, char **env){
  
    menu(argc, argv, env);
@@ -34,8 +34,8 @@ int main(char * argc, char ** argv, char **env){
 
 }
 
-
-int menu(char *argc, char **argv, char **env){
+*/
+int menu(char **argv, char **env){
   
   if (strcmp(argv[0], "cls") == 0){
     cls();
@@ -51,6 +51,7 @@ int menu(char *argc, char **argv, char **env){
 
   else if (strcmp(argv[0], "dir") == 0){
     dir(argv[1]);
+    puts("in dir");
   }
   
   else if (strcmp(argv[0], "echo") == 0){
@@ -59,7 +60,7 @@ int menu(char *argc, char **argv, char **env){
    
   else if (strcmp(argv[0], "quit") == 0){
     quit();
-  
+
   }else{
     return 1;
   }
@@ -72,8 +73,10 @@ void cls(){
 }
 
   
-void quit(){
+int quit(){
+  puts("exiting...");
   exit(0);
+  return 0;
 }
 
 //not even sure if this works atm
