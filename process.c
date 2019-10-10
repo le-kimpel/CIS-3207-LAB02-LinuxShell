@@ -8,20 +8,20 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include "internal.h"
+
 /*
   -----------------
   | UPDATE NOTES: |
   -----------------
--now i need to handle redirects accordingly
+
 -and start writing better error messages
 -also, i need to teach it to handle ambiguous input redirects
+-still need to have it run in background
+-still need to stick a batch file in
 
 BUGS:
+-doesn't like to exit when told
 
--shady input doesn't give errors
--doesn't like exec at all (this is probably because there is no 
-point in forking within this program - so we should probably move
-it to main)
 
 */
 
@@ -41,20 +41,22 @@ void handle_redirects(q *command);
 char **env;
 
 int main(char *c, char**argv, char **environ){
-  
-  char *input = argv[0];
 
+  //set input to args
+  char *input = argv[0];
+  
+  //setting environment variable
   env = environ;
   
   // converting input to 2d array
   char **temp = str_to_array(input);
-
+  
   // converts 2d array to linked list
   q *temp2 = str_to_linkedlist(temp);
-
   
+  //initiate recursive tokenization (pipes first)
   pipe_cmd(temp2, temp);
-
+  
   
   return 0;
 }
@@ -62,7 +64,7 @@ int main(char *c, char**argv, char **environ){
 
 //sets output to a file
 void cat_out_redirect_cmd(char *FILENAME){
-
+  
   int fd = open(FILENAME, O_CREAT|O_WRONLY|O_APPEND, 0644);
 
   if (fd!=0){
@@ -75,7 +77,7 @@ void cat_out_redirect_cmd(char *FILENAME){
 
 //sets output to a file
 void out_redirect_cmd(char *FILENAME){
-
+  
   int fd = open(FILENAME, O_CREAT|O_WRONLY|O_TRUNC, 0644);
 
   if (fd!=0){
@@ -88,7 +90,7 @@ void out_redirect_cmd(char *FILENAME){
 
 //sets input from a file
 void in_redirect_cmd(char *FILENAME){
-
+  
   int fd = open(FILENAME, O_RDONLY);
   
   if (fd!= 0){
@@ -107,7 +109,7 @@ char **str_to_array(char *str){
   int str_index = 0;
   int i = 0;
   char *token = strtok(str, " ");
-
+  
   while(token!=NULL){
     
     tokenized[str_index++] = token;
@@ -115,7 +117,7 @@ char **str_to_array(char *str){
     token = strtok(NULL, " ");
     
   }
-
+  
   //ascribing a null teriminating character 
   int len = strlen(tokenized[str_index-1]);
   
@@ -128,9 +130,9 @@ char **str_to_array(char *str){
 //handles the current elements of the list prior to a pipe
 //currently using this method to debug the pipe method
 void handle(q *pipe_list){
-
+  
   //if command
-   if (get(pipe_list, 0)!=NULL){
+  if (get(pipe_list, 0)!=NULL){
      print_q(pipe_list);
      handle_redirects(pipe_list);
      handle_internal_cmd(pipe_list);
@@ -158,7 +160,7 @@ q *pipe_cmd(q *parent_list, char **str){
     
     exit(0);
   }
-
+  
   //base case for recursive condition: no pipes left
   if (parent_list->size == 0){
     printf("PARENT\n");
@@ -178,7 +180,7 @@ q *pipe_cmd(q *parent_list, char **str){
     
     handle(pipe_list);
     
-   //parent process takes the parent list
+    //parent process takes the parent list
   }else if (pid > 0){
     
     wait(NULL);
@@ -190,7 +192,8 @@ q *pipe_cmd(q *parent_list, char **str){
     char *args[] = {NULL};
     
     pipe_cmd(parent_list, str);
-   }
+    
+  }
   
 }
 
@@ -288,26 +291,30 @@ q *str_to_linkedlist(char **str){
 //as well as  execute them
 void handle_internal_cmd(q *command){
   
-  //exec in internal.c
-
   char *args[100];
   
   int i = 0;
- 
+
+  //pump command arguments into args
   while(get(command, i)!=NULL){
     
     args[i] = get(command, i);
     i++;
   }
 
+  //insert null-terminating character
   args[i] = NULL;
   
   //if the command is an internal command
-
   print_str(args);
   
   int res = menu(args, env);
-  
+
+  if (strcmp(get(command,0), "quit") == 0){
+      exit(0);
+    }
+    
+  //checks to see if menu for internal commands returns failure
   if(res == 1){
     printf("%d\n", execvp(get(command,0), args));
   }
@@ -315,19 +322,21 @@ void handle_internal_cmd(q *command){
 
 void handle_redirects(q *command){
 
-  //  int pid = fork();
-
+  //metrics to handle finding redirects within a string in the data structure
   int i = 0;
   int IN_FLAG;
   int OUT_FLAG;
 
+  //while each string is not null
   while (get(command, i)!=NULL){
 
+    //if we find an in-redirect
     if (strcmp(get(command,i), "<") == 0){
       OUT_FLAG = 0;
       IN_FLAG = 1;
       break;
-
+      
+      //if we find an out-redirect
     }else if (strcmp(get(command,i),">") == 0){
       IN_FLAG = 0;
       OUT_FLAG = 1;
@@ -339,6 +348,7 @@ void handle_redirects(q *command){
 
  }
 
+  //chooses whether to redirect inward or outward depending on which flag is active
   if (IN_FLAG == 0){
     in_redirect_cmd(get(command,i+1));
   }else if (OUT_FLAG == 0){

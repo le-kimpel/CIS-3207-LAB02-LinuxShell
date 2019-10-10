@@ -25,16 +25,18 @@ int  cd(char *argv);
 void help(char *argv);
 //main interface for executing internal commands
 int menu(char **argv, char **env);
+
 /*
 int main(char * argc, char ** argv, char **env){
  
-   menu(argc, argv, env);
+  menu(argv, env);
 
   return 0;
 
 }
-
 */
+
+//if-else statements to control what executes
 int menu(char **argv, char **env){
   
   if (strcmp(argv[0], "cls") == 0){
@@ -137,7 +139,7 @@ void dir(char *argv){
 }
 
 int cd(char *argv){
-
+ 
   //buffer set to maximum path size
   char *buf = (char*)(malloc(PATH_MAX));
   //the absolute path for the cd arg
