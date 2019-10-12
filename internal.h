@@ -23,7 +23,7 @@ void environ(char ** env);
 //prints the files under the current directory
 void dir(char *argv);
 //changes the current directory
-int  cd(char *argv);
+char*  cd(char *argv);
 //gets the help manual
 void help(char *argv);
 //main interface for executing internal commands

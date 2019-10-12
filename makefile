@@ -1,6 +1,6 @@
 CFLAGS = -g
 
-objects = linkedlist.o process.o internal.o 
+objects = linkedlist.o main.o internal.o 
 
 str : $(objects)
 	cc -o str $(objects)

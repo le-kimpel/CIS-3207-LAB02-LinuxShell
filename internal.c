@@ -20,17 +20,18 @@ void environ(char ** env);
 //prints the files under the current directory
 void dir(char *argv);
 //changes the current directory
-int  cd(char *argv);
+char*  cd(char *argv);
 //gets the help manual
 void help(char *argv);
 //main interface for executing internal commands
 int menu(char **argv, char **env);
-
 /*
+
 int main(char * argc, char ** argv, char **env){
  
-  menu(argv, env);
-
+   menu(argv, env);
+  
+ 
   return 0;
 
 }
@@ -138,7 +139,7 @@ void dir(char *argv){
   
 }
 
-int cd(char *argv){
+char *cd(char *argv){
  
   //buffer set to maximum path size
   char *buf = (char*)(malloc(PATH_MAX));
@@ -163,8 +164,11 @@ int cd(char *argv){
   if (chdir(resolved_path)!=0){
     puts("ERROR: Directory may not exist");
   }
-  
-  return new_dir;
+
+  // setenv("PWD", pwd, 1);
+
+  printf("%s%s\n", "current pwd: ", getenv("PWD"));
+  return getenv("PWD");
   
 }
 
