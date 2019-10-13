@@ -21,7 +21,7 @@ void echo(char *c);
 //prints the environment variables
 void environ(char ** env);
 //prints the files under the current directory
-void dir(char *argv);
+int dir(char *argv);
 //changes the current directory
 char*  cd(char *argv);
 //gets the help manual

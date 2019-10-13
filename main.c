@@ -15,9 +15,6 @@
   -----------------
 
 -and start writing better error messages
--also, i need to teach it to handle ambiguous input redirects
--still need to stick a batch file in
--give "<<" and ">>" functionality
 -...fucking parallel commands???
 
 BUGS:
@@ -43,6 +40,11 @@ char **env;
 
 int main(char *c, char**argv, char **environ){
 
+  //batch file
+  if (argv[1]!=NULL){
+    in_redirect_cmd(argv[1]);
+  }
+  
   //size of an input string
   char *input = (char*)malloc(256*sizeof(char));  
   
@@ -72,7 +74,7 @@ int main(char *c, char**argv, char **environ){
 	
 	int status = 0;
 	wait(&status);
-	printf("%s%d\n", "Child executed with status ID of ", status);
+	//printf("%s%d\n", "Child executed with status ID of ", status);
 
       }
 
@@ -328,7 +330,7 @@ q *pipe_cmd(q *parent_list, char **str, int *index){
   //produce a list that handles up to first end of pipe
   q *pipe_list = (tok_pipes(parent_list, str, index));
 
-  print_q(pipe_list);
+  //print_q(pipe_list);
   //ints for file descriptor
   int READ = 0;
   int WRITE = 1;
@@ -498,11 +500,21 @@ void handle_internal_cmd(q *command){
   args[i] = NULL;
   
   //if the command is an internal command
-  //print_str(args);
+  // puts("here");
+  // printf("%s\n", args[0]);
 
   //checking failure
   int res = menu(args, env);
-    
+
+  if (res == 0){
+    exit(0);
+  }
+  
+  //if we quitted:
+  if (strcmp(args[0], "quit") == 0){
+    quit();
+  }
+
   //checks to see if menu for internal commands returns failure
   if(res == 1){
      execvp(get(command,0), args);

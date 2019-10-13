@@ -18,20 +18,22 @@ void echo(char *c);
 //prints the environment variables
 void environ(char ** env);
 //prints the files under the current directory
-void dir(char *argv);
+int dir(char *argv);
 //changes the current directory
 char*  cd(char *argv);
 //gets the help manual
 void help(char *argv);
 //main interface for executing internal commands
 int menu(char **argv, char **env);
-/*
 
+/*
 int main(char * argc, char ** argv, char **env){
  
    menu(argv, env);
-  
- 
+
+  // char *args[] = {"dir", NULL};
+  //menu(args, env);
+  // menu(args, env);
   return 0;
 
 }
@@ -67,6 +69,8 @@ int menu(char **argv, char **env){
   }else{
     return 1;
   }
+
+  return 0;
 }
 
 void cls(){
@@ -111,7 +115,7 @@ void environ(char ** env){
     
 }
   
-void dir(char *argv){
+int dir(char *argv){
   
   DIR *d;
   struct dirent *dir;
@@ -136,7 +140,7 @@ void dir(char *argv){
   }else{  
     puts("An error occurred executing dir.");
   }
-  
+  return 0; 
 }
 
 char *cd(char *argv){
