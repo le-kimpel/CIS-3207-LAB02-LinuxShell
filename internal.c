@@ -171,7 +171,7 @@ int cd(char *argv){
 
   // setenv("PWD", pwd, 1);
 
-  //  printf("%s%s\n", "current pwd: ", getenv("PWD"));
+   printf("%s%s\n", "current pwd: ", getenv("PWD"));
   return 0;
   
 }

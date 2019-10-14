@@ -17,4 +17,5 @@ cat out.txt
 ./test < in.txt | ./test | ./test | ./test > out.txt
 cat out.txt
 cls
+environ
 quit

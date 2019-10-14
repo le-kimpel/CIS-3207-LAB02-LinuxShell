@@ -1,9 +1,4 @@
-ls
-rm in.txt
-touch in.txt
-rm out.txt
-touch out.txt
-echo 1 > in.txt
-cat in.txt
-./test < in.txt
+environ
+cd ../
+environ
 quit

@@ -13,9 +13,7 @@
   -----------------
   | UPDATE NOTES: |
   -----------------
-
--and start writing better error messages
--...fucking parallel commands???
+-implement parallel commands
 
 BUGS:
 
@@ -53,16 +51,22 @@ int main(char *c, char**argv, char **environ){
   //while true
   while(1){
     
-    //prints shell prompt with updated working directory if not batch file
+    //prints shell prompt with updated working directory if not batch fil
 
-    if (argv[1]==NULL){
-
-    printf("%s%s%s", "MyShell:", getenv("PWD"), ">" );
-
+    //print the entered command for batch file only
+    if (argv[1]!=NULL){    
+      int len = 100;
+      fgets(input,len,stdin);
+     
+      printf("%s%s%s", "MyShell:", getenv("PWD"), ">" );
+      printf("%s\n", input);
+       
+    }else{
+      printf("%s%s%s", "MyShell:", getenv("PWD"), ">" );
+      int len = 100;
+      fgets(input,len,stdin);
+      
     }
-    int len = 100;
-    fgets(input,len,stdin);
-
     
      //check for valid cd in order to prioritize correct redirection
      char input_copy[strlen(input)+1];
@@ -72,7 +76,7 @@ int main(char *c, char**argv, char **environ){
      q* cpy = initialize_queue();
      char **args = str_to_array(input_copy);
      cpy = str_to_linkedlist(args);
-
+   
      //if we have an insance of cd()
      if (strcmp(get(cpy, 0), "cd") == 0){
        //cd cannot have more than 1 other arg
@@ -109,7 +113,7 @@ int main(char *c, char**argv, char **environ){
     } else if (pid == 0){
        
       //setting environment variable
-      env = environ;
+       env = environ;
       
       // converting input to 2d array
       char **temp = str_to_array(input);
