@@ -36,6 +36,7 @@ void out_redirect_cmd(char *FILENAME);
 void handle_redirects(q *command);
 int check_IO_redirects(q *command);
 
+
 char **env;
 
 int main(char *c, char**argv, char **environ){
@@ -58,10 +59,34 @@ int main(char *c, char**argv, char **environ){
     fgets(input,len,stdin);
     
     //print str for debugging
-     printf("%s\n", input);
+    // printf("%s\n", input);
      
-    //forking
-    int pid = fork();
+     //check for valid cd in order to prioritize correct redirection
+     char input_copy[strlen(input)+1];
+     strcpy(input_copy, input);
+
+     //copying into linkedlist for simplicity
+     q* cpy = initialize_queue();
+     char **args = str_to_array(input_copy);
+     cpy = str_to_linkedlist(args);
+
+     //if we have an insance of cd()
+     if (strcmp(get(cpy, 0), "cd") == 0){
+       //cd cannot have more than 1 other arg
+       if (cpy->size > 2){
+	 printf("ERROR: Invalid cd command, cannot have more than one arg\n");
+	 //cd with 1 arg
+       }else if (cpy->size == 2){
+	   cd(get(cpy,1));
+	   //cd with no args
+       }else{
+	 cd(".");
+       }
+       continue;
+     }
+     
+     //forking
+     int pid = fork();
      
     //parent process
     if (pid > 0){
@@ -73,6 +98,7 @@ int main(char *c, char**argv, char **environ){
       if (input[strlen(input)-2] != '&'){
 	
 	int status = 0;
+	
 	wait(&status);
 	//printf("%s%d\n", "Child executed with status ID of ", status);
 
@@ -83,7 +109,7 @@ int main(char *c, char**argv, char **environ){
        
       //setting environment variable
       env = environ;
-       
+      //printf("%s\n",getenv("PWD")); 
       // converting input to 2d array
       char **temp = str_to_array(input);
        
@@ -323,7 +349,6 @@ void handle(q *pipe_list){
 }
 
 //supposedly handles the pipes
-
 q *pipe_cmd(q *parent_list, char **str, int *index){
 
   // print_q(parent_list);
@@ -362,7 +387,7 @@ q *pipe_cmd(q *parent_list, char **str, int *index){
   if (pid == 0){
 
     //puts("child");
-    //    print_q(pipe_list);
+    //print_q(pipe_list);
     
     close(fd[READ]);
     
@@ -374,7 +399,7 @@ q *pipe_cmd(q *parent_list, char **str, int *index){
   }else if (pid > 0){
 
     wait(NULL);
-    
+
     close(fd[WRITE]);
     
     dup2(fd[READ], 0);
@@ -505,7 +530,7 @@ void handle_internal_cmd(q *command){
 
   //checking failure
   int res = menu(args, env);
-
+  
   if (res == 0){
     exit(0);
   }
