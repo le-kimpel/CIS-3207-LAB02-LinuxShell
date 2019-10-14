@@ -20,7 +20,7 @@ void environ(char ** env);
 //prints the files under the current directory
 int dir(char *argv);
 //changes the current directory
-char*  cd(char *argv);
+int  cd(char *argv);
 //gets the help manual
 void help(char *argv);
 //main interface for executing internal commands
@@ -143,7 +143,7 @@ int dir(char *argv){
   return 0; 
 }
 
-char *cd(char *argv){
+int cd(char *argv){
  
   //buffer set to maximum path size
   char *buf = (char*)(malloc(PATH_MAX));
@@ -171,8 +171,8 @@ char *cd(char *argv){
 
   // setenv("PWD", pwd, 1);
 
-  printf("%s%s\n", "current pwd: ", getenv("PWD"));
-  return getenv("PWD");
+  //  printf("%s%s\n", "current pwd: ", getenv("PWD"));
+  return 0;
   
 }
 

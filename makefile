@@ -5,7 +5,7 @@ objects = linkedlist.o main.o internal.o
 str : $(objects)
 	cc -o str $(objects)
 
-process.o : linkedlist.h internal.h
+main.o : linkedlist.h internal.h
 
 .PHONY : clean
 clean :

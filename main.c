@@ -33,6 +33,7 @@ void handle(q *pipe_list);
 void handle_internal_cmd(q *command);
 void in_redirect_cmd(char *FILENAME); 
 void out_redirect_cmd(char *FILENAME);
+void cat_out_redirect_cmd(char *FILENAME);
 void handle_redirects(q *command);
 int check_IO_redirects(q *command);
 
@@ -46,21 +47,23 @@ int main(char *c, char**argv, char **environ){
     in_redirect_cmd(argv[1]);
   }
   
-  //size of an input string
+  //size of an input string: default is 256
   char *input = (char*)malloc(256*sizeof(char));  
   
   //while true
   while(1){
     
-    //working directory
+    //prints shell prompt with updated working directory if not batch file
+
+    if (argv[1]==NULL){
+
     printf("%s%s%s", "MyShell:", getenv("PWD"), ">" );
-    
+
+    }
     int len = 100;
     fgets(input,len,stdin);
+
     
-    //print str for debugging
-    // printf("%s\n", input);
-     
      //check for valid cd in order to prioritize correct redirection
      char input_copy[strlen(input)+1];
      strcpy(input_copy, input);
@@ -84,7 +87,7 @@ int main(char *c, char**argv, char **environ){
        }
        continue;
      }
-     
+    
      //forking
      int pid = fork();
      
@@ -100,8 +103,6 @@ int main(char *c, char**argv, char **environ){
 	int status = 0;
 	
 	wait(&status);
-	//printf("%s%d\n", "Child executed with status ID of ", status);
-
       }
 
        //child process
@@ -109,7 +110,7 @@ int main(char *c, char**argv, char **environ){
        
       //setting environment variable
       env = environ;
-      //printf("%s\n",getenv("PWD")); 
+      
       // converting input to 2d array
       char **temp = str_to_array(input);
        
@@ -123,7 +124,7 @@ int main(char *c, char**argv, char **environ){
       }
 
       int index = 0;
-      
+
       //initiate recursive tokenization (pipes first)
       pipe_cmd(temp2, temp, &index);
        
@@ -160,12 +161,21 @@ int check_IO_redirects(q *command){
   int in_count = 0;
   int out_count = 0;
   int cat_count = 0;
+
+  //can't begin or end with a pipe (no pipes to nowhere)
+  if (strcmp(get(command, command->size-1), "|") == 0 ||
+      strcmp(get(command, 0), "|") == 0){
+    return 0;
+  }
   
   while(get(command, i)!=NULL){
 
     char *str = get(command, i);
 
-
+    //bad redirects in general
+    if (strcmp(str, "<>") == 0 || strcmp(str,"><") == 0){
+    return 0;
+  }
     //sets out flag to 1 upon discovery of output redirect
     if (strcmp(str, ">>") == 0){
       cat_count++;
@@ -215,9 +225,9 @@ int check_IO_redirects(q *command){
   }
   
   while (get(command, j)!=NULL){
-
+    
     char *str = get(command, j);
- 
+    
     //if we have not seen all pipes 
     if (strcmp(str, ">") == 0 || strcmp(str, ">>") == 0){
       was_out = 1;
@@ -280,6 +290,7 @@ void cat_out_redirect_cmd(char *FILENAME){
     dup2(fd, 1);
   }else{
     puts("ERROR: cannot form out-redirect!");
+    
   }
   
 }
@@ -293,8 +304,9 @@ void out_redirect_cmd(char *FILENAME){
     dup2(fd, 1);
   }else{
     puts("ERROR: cannot form out-redirect!");
-  }
   
+  }
+ 
 }
 
 //sets input from a file
@@ -306,7 +318,8 @@ void in_redirect_cmd(char *FILENAME){
     dup2(fd, 0);
     
   }else{
-    puts("ERROR: cannot form in-redirect!");
+ 
+    puts("ERROR: cannot form in-redirect!");  
   }
   
 }
@@ -336,26 +349,21 @@ char **str_to_array(char *str){
   
 }
 
-//handles the current elements of the list prior to a pipe
-//currently using this method to debug the pipe method
+//handles the current elements of the list(s)
 void handle(q *pipe_list){
   
-  //if command
+  //if command is preprocessed and valid, redirect as necessary
   if (get(pipe_list, 0)!=NULL){
-    //print_q(pipe_list);
      handle_redirects(pipe_list);
      handle_internal_cmd(pipe_list);
-   }
+  }
 }
 
-//supposedly handles the pipes
 q *pipe_cmd(q *parent_list, char **str, int *index){
 
-  // print_q(parent_list);
   //produce a list that handles up to first end of pipe
   q *pipe_list = (tok_pipes(parent_list, str, index));
 
-  //print_q(pipe_list);
   //ints for file descriptor
   int READ = 0;
   int WRITE = 1;
@@ -373,9 +381,6 @@ q *pipe_cmd(q *parent_list, char **str, int *index){
   
   //base case for recursive condition: no pipes left
   if (parent_list->size == 0){
-    // puts("parent");
-    // print_q(pipe_list);
-    // print_q(parent_list);
     handle(pipe_list);
     return 0;
   }
@@ -385,9 +390,6 @@ q *pipe_cmd(q *parent_list, char **str, int *index){
   
   //child process handles the pipe
   if (pid == 0){
-
-    //puts("child");
-    //print_q(pipe_list);
     
     close(fd[READ]);
     
@@ -406,8 +408,6 @@ q *pipe_cmd(q *parent_list, char **str, int *index){
     
     char *args[] = {NULL};
 
-    // puts("parent check");
-    // print_q(parent_list);
     pipe_cmd(parent_list, str, index);
     
   }
@@ -445,7 +445,6 @@ q *tok_pipes(q *parent_list, char **str, int *index){
   //dequeue to get rid of extra pipe character
    dequeue(parent_list);
   
-   // print_q(pipe_list);
   return pipe_list;
   
 }
@@ -525,12 +524,9 @@ void handle_internal_cmd(q *command){
   args[i] = NULL;
   
   //if the command is an internal command
-  // puts("here");
-  // printf("%s\n", args[0]);
-
   //checking failure
   int res = menu(args, env);
-  
+
   if (res == 0){
     exit(0);
   }
