@@ -54,8 +54,6 @@ int main(char *c, char**argv, char **environ){
   //while true
   while(1){
     
-    //prints shell prompt with updated working directory if not batch fil
-    
     //print the entered command for batch file only
     if (argv[1]!=NULL){    
       int len = 100;
@@ -71,12 +69,12 @@ int main(char *c, char**argv, char **environ){
       
     }
 
-    // check for quit
+    //check for quit
     if (strcmp(input, "quit\n") == 0){
       exit(0);
     }
 
-    // set wait flag
+    //set wait flag
     int wait_flag = 1;
     if (input[strlen(input)-2] == '&'){
       wait_flag = 0;
@@ -111,7 +109,7 @@ int main(char *c, char**argv, char **environ){
     int count = 0;
     int should_parallel = is_parallel(cpy, &count);
 
-    printf("should parralel [%d] : count [%d]\n", should_parallel, count);
+    printf("should parallel [%d] : count [%d]\n", should_parallel, count);
     if(should_parallel == -1){
       printf("ERROR: Invalid input\n");
       continue;

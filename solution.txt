@@ -1,0 +1,118 @@
+------------------------------------------------------------------------------------
+SOLUTIONS TO LAB02
+------------------------------------------------------------------------------------
+
+FUNCTIONALITY (SUMMARY)
+
+This shell is built around the edge case of infinite pipes.
+
+Thus, a "divide-and-conquer" approach seemed to be the most appropriate. The lab
+works recursively in this manner. It splits a string by whitespace, puts it in a
+char**, then converts to a linked list. It then splits again if there are pipes.
+The child list is the first end of the pipe and the parent is the recieving end. This
+continues until the pipe condition is no longer needed. If there are no pipes, then
+the commands are handled without splitting.
+
+Included is a high-level program trace that simplifies how this shell was written.
+
+Our primary custom data structure is a linked_list of the type q*. This linked_list
+contains our command strings. 
+
+In order for out input to be processed, it gets funneled into an array of char*.
+The str_to_linkedlist function then converts the array of char* into a linked list.
+So, in order to go from a char* to a linkedlist, it becomes a 2-step process.
+-------------------------------------------------------------------------------------
+PROGRAM TRACE
+
+1. An input string is read in from stdin. ALL INPUT MUST BE SEPARATED BY AT LEAST ONE
+WHITESPACE. Otherwise, the shell will not recognize it. 
+
+1a. If a batch file is included, we immediately redirect the program's input to
+this batch file using the in_redirect_cmd method, similarly to the "<" operator.
+MyShell accepts only one batch file and will fail if 2+ are included.
+
+1ab. If we have a batch file, batch file ouput (path name and input string) are
+printed in a slightly different order than if MyShell started up with no args.
+This is to prevent confusion when reading outputs.
+
+2. Check for "&" operators that terminate the input string. If they exist, we
+reformat the input string to remove the ampersand. The wait_flag indicator is 
+to signify whether the future forked parent process will run in background or not.
+
+3. Then, we check whether a call to cd() occurred. This is so the current working
+directory will successfully update. It also checks for illegal arguments such as more
+than one argument.
+
+4. We make a copy of our arguments and check and appropriately format for parallel
+operators. This is so that we do not affect the final string, but reformat if
+we have a "&" that does not terminate the command string.
+
+5. In a for-loop, the final preprocessed string is forked. We check for errors in
+our I/O redirect inputs, if they exist. The parent process WAITS if there is no
+terminating ampersand OR a parallel process was discovered. The child process sends
+a char ** string, a q*, and an index address to the pipe_cmd function to start the
+recursion.
+
+6. In pipe_cmd, we generate a child list. Since all linkedlists are tokenized by
+whitespace, we do not need to tokenize anymore. We instead call tok_pipes in pipe_cmd
+to detect our first pipe. If no pipes, then parent list assumes control and executes
+or handles ">" or "<" as necessary. If pipes exist, then we put everything leading up
+to the first pipe in a child list, and dequeue from the parent list until we have an
+element that is everything after the pipe.
+
+7. Returning to pipe_cmd, we fork as necessary. The child process writes to the
+parent process and the parent process reads from the child. This is done by using
+the pipe() call to pipe on the indicated file descriptor. Then, a call to the handle
+function deals with I/O operators that passed the initial check, as well as executing
+any external commands, or running internal ones. Finally, a recursive call is issued
+and pipe_cmd continues until the parent_list has no elements.
+
+8. Redirects are handled by using flags to check for instances of any redirect. If
+a flag is raised, the corresponding redirect function deals with that input and the
+associated string in the linkedlist.
+
+9. Otherwise, we will fork again in the handle_internal_cmd function. It does handle
+internal commands by calling them with a reference to menu() in internal.c.
+It checks for quit conditions. The child will then execvp on any string that fails in
+menu().
+
+-------------------------------------------------------------------------------------
+INPUTS AND LIMITATIONS - IMPLEMENTATION
+
+The user input is determined by whitespace. Thus, anything that is separated by
+whitespace will be treated as a legitimate command. However, this means that
+user input that has no whitespace - such as ./test|./test or ./test> output.txt -
+will fail and will not be recognized.
+
+Parallel commands accept up to 3 commands and 3 arguments. This is due to time
+constraints. Thus, you cannot run infinitely many parallel commands. The syntax for
+a parallel command must also follow the whitespace rule.
+
+The program will not accept more than one batch file. 
+
+-------------------------------------------------------------------------------------
+TESTING, DEBUGGING, EDGE CASE TESTING
+
+To signify when illegal input has occurred, all input was preprocessed before being
+forked in order to simplify testing. To notify the shell as to when different
+edge-case criteria was met, a common testing strategy was the use of flags.
+In the check_IO_redirects method, we have several flags to test whether illegal
+input was entered. 
+String processing was not as much of a problem, since strings are immediately
+tokenized by whitespace. The kinds of errors seen with  char** are not present
+simply because the shell operates using a much more flexible data structure, a
+linkedlist that contains char*.
+To carry the possiblity of parallel commands, it was necessary to format by
+creating a q** array.
+The print_q and print_str functions allow for easy debugging by accurately printing
+the output of each data structure, respectively. Common files for debugging pipes
+and batch output were:
+
+test.c -- scans for input and increments by 1. Accepts an integer.
+test2.c -- waits for 10 seconds before printing a finishing statement.
+hello.c -- prints "Hello, World!"
+batch_correct.txt -- tests redirection using correct syntax as well as a few internal
+comands.
+batch2, batch3.txt -- smaller, more concise versions of batch_correct.txt.
+
+
