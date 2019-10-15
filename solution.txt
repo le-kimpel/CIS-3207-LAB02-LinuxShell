@@ -109,10 +109,18 @@ the output of each data structure, respectively. Common files for debugging pipe
 and batch output were:
 
 test.c -- scans for input and increments by 1. Accepts an integer.
+
 test2.c -- waits for 10 seconds before printing a finishing statement.
+
 hello.c -- prints "Hello, World!"
 batch_correct.txt -- tests redirection using correct syntax as well as a few internal
 comands.
+
 batch2, batch3.txt -- smaller, more concise versions of batch_correct.txt.
+
+test_dir -- this is a test directory created specifically for navigation
+between files. In addition, test_dir has more small files that have been used
+to test output or forking, piping, exec, etc. use either dir or the ls command
+to see a list of files under test_dir.
 
 

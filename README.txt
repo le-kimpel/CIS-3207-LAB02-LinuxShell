@@ -234,7 +234,7 @@ DESCRIPTION
 
 The "cd" command will change the current working directory of the shell to a
 user-specified path. This path can be an absolute or relative path. 
-
+Relies on chdir() as well as realpath(). 
 
 DIR MANUAL
 
@@ -251,8 +251,8 @@ DESCRIPTION
 Calls to dir will provide a list of all files under the current directory if null.
 If PATH has an argument, then, if this PATH is deemed by the shell to be legitimate,
 dir will print all files under the specified directory (but will not change
-directories.)
-
+directories.) Relies on the realpath() system call.
+ 
 
 ECHO MANUAL
 
@@ -298,4 +298,46 @@ DESCRIPTION
 One of the most useless commands in the entire shell. Pauses the shell until
 the Enter key is pressed. Zero useful functionality.
 
+CLS MANUAL
+
+NAME
+
+cls - Clears the current screen
+
+SYNOPSIS
+
+cls
+
+DESCRIPTION
+Clears the current screen.
+
+
+HELP MANUAL
+
+NAME
+
+help - prints this manual
+
+SYNOPSIS
+
+help
+
+DESCRIPTION
+
+Prints the MyShell manual.
+
+
+ENVIRON MANUAL
+
+NAME
+
+environ - Prints the current environment in the shell.
+
+SYNOPSIS
+
+environ
+
+DESCRIPTION
+
+Prints the environment variables operating within the shell. 
 
