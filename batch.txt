@@ -1,2 +1,0 @@
-./test < input.txt | ./test > output.txt
-quit

@@ -13,7 +13,10 @@
   -----------------
   | UPDATE NOTES: |
   -----------------
--implement parallel commands
+-do readme
+-do other documentation
+-add articulate error messages
+-help
 
 BUGS:
 
