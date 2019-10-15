@@ -34,8 +34,8 @@ void out_redirect_cmd(char *FILENAME);
 void cat_out_redirect_cmd(char *FILENAME);
 void handle_redirects(q *command);
 int check_IO_redirects(q *command);
-
-
+int is_parallel(q *command, int * count);
+q** format_parallel(q*command, int * count);
 char **env;
 
 int main(char *c, char**argv, char **environ){
@@ -52,7 +52,7 @@ int main(char *c, char**argv, char **environ){
   while(1){
     
     //prints shell prompt with updated working directory if not batch fil
-
+    
     //print the entered command for batch file only
     if (argv[1]!=NULL){    
       int len = 100;
@@ -67,78 +67,225 @@ int main(char *c, char**argv, char **environ){
       fgets(input,len,stdin);
       
     }
-    
-     //check for valid cd in order to prioritize correct redirection
-     char input_copy[strlen(input)+1];
-     strcpy(input_copy, input);
 
-     //copying into linkedlist for simplicity
-     q* cpy = initialize_queue();
-     char **args = str_to_array(input_copy);
-     cpy = str_to_linkedlist(args);
+    // check for quit
+    if (strcmp(input, "quit\n") == 0){
+      exit(0);
+    }
+
+    // set wait flag
+    int wait_flag = 1;
+    if (input[strlen(input)-2] == '&'){
+      wait_flag = 0;
+      input[strlen(input)-2] = '\n';
+      input[strlen(input)-1] = '\0';
+    }
+    
+    //check for valid cd in order to prioritize correct redirection
+    char input_copy[strlen(input)+1];
+    strcpy(input_copy, input);
    
-     //if we have an insance of cd()
-     if (strcmp(get(cpy, 0), "cd") == 0){
-       //cd cannot have more than 1 other arg
-       if (cpy->size > 2){
-	 printf("ERROR: Invalid cd command, cannot have more than one arg\n");
-	 //cd with 1 arg
-       }else if (cpy->size == 2){
-	   cd(get(cpy,1));
-	   //cd with no args
-       }else{
-	 cd(".");
-       }
-       continue;
-     }
-    
-     //forking
-     int pid = fork();
+    //copying into linkedlist for simplicity
+    q* cpy = initialize_queue();
+    char **args = str_to_array(input_copy);
+    cpy = str_to_linkedlist(args);
      
-    //parent process
-    if (pid > 0){
+    //if we have an instance of cd()
+    if (strcmp(get(cpy, 0), "cd") == 0){
+      //cd cannot have more than 1 other arg
+      if (cpy->size > 2){
+	printf("ERROR: Invalid cd command, cannot have more than one arg\n");
+	//cd with 1 arg
+      }else if (cpy->size == 2){
+	cd(get(cpy,1));
+	//cd with no args
+      }else{
+	cd(".");
+      }
+      continue;
+    }
 
-      if (strcmp(input, "quit\n") == 0){
+    int count = 0;
+    int should_parallel = is_parallel(cpy, &count);
+
+    printf("should parralel [%d] : count [%d]\n", should_parallel, count);
+    if(should_parallel == -1){
+      printf("ERROR: Invalid input\n");
+      continue;
+    }
+    
+    q** q_array;
+    q_array = format_parallel(cpy, &count);
+
+    for(int i = 0; i <= count; i++){
+      print_q(q_array[i]);
+    }
+   
+  
+    char *input_array[count+1];
+    int malloc_flag = 0;
+   
+    for (int i = 0; i<=count; i++){
+      input_array[i] = (char*)malloc(200*sizeof(char));
+
+      if(input_array[i] == NULL){
+	puts("Failed to allocate memory for the input string");
+	malloc_flag = 1;
+	break;
+      }
+
+      
+      for (int j = 0; j<q_array[i]->size; j++){
+	strcat(input_array[i], get(q_array[i], j));
+	strcat(input_array[i], " ");
+
+      }
+      
+      strcat(input_array[i], "\n");
+      printf("[%s]\n", input_array[i]);
+    }
+    
+    if (malloc_flag == 1){
+      continue;
+    }
+
+    for(int i = 0; i <= count; i++){
+      //forking
+      int pid = fork();
+      
+      //child process
+      if (pid == 0){
+	
+	//setting environment variable
+	env = environ;
+	
+	//converting input to 2d array
+       	char **temp = str_to_array(input_array[i]);
+	
+	//converts 2d array to linked list
+	//q *temp2 = str_to_linkedlist(temp);
+
+	q *temp2 = q_array[i];
+	
+	//check for valid redirect(s)
+	if (check_IO_redirects(temp2) == 0){
+	  puts("ERROR: Ambiuous redirects");
+	  return -1;
+	}
+	
+	int index = 0;
+	
+	//initiate recursive tokenization (pipes first)
+	pipe_cmd(temp2, temp, &index);
 	exit(0);
       }
-    
-      if (input[strlen(input)-2] != '&'){
-	
+    }
+
+    if (wait_flag == 1){
+      for(int i = 0; i <= count; i++){
 	int status = 0;
-	
 	wait(&status);
       }
-
-       //child process
-    } else if (pid == 0){
-       
-      //setting environment variable
-       env = environ;
-      
-      // converting input to 2d array
-      char **temp = str_to_array(input);
-       
-      // converts 2d array to linked list
-      q *temp2 = str_to_linkedlist(temp);
-
-      //check for valid redirect(s)
-      if (check_IO_redirects(temp2) == 0){
-	puts("ERROR: Ambiuous redirects");
-	return -1;
-      }
-
-      int index = 0;
-
-      //initiate recursive tokenization (pipes first)
-      pipe_cmd(temp2, temp, &index);
-       
-    } 
-    
+    }
   }
-  
   return 0;
 }
 
+q** format_parallel(q*cmds, int *count){
+  //assume have at least 1 & (2 commands)
+  q** inputs;
+
+  //if no &, return just the command
+  if(*count == 0){
+    inputs = (q**)malloc(sizeof(q*) * ((*count+1)));
+    inputs[0] = cmds;
+    return inputs;
+  }else{
+    //create an array of q inputs 
+    inputs = (q**)malloc(sizeof(q*) * ((*count)));    
+  }
+  
+  if(inputs == NULL){
+    printf("ERROR: Failed to malloc Q array");
+  }
+  
+  //initialize our queues
+  inputs[0] = initialize_queue();
+  inputs[1] = initialize_queue();
+
+  //construct command 1
+  enqueue(inputs[0], get(cmds, 0));
+  enqueue(inputs[0], get(cmds, 3));
+
+  //construct command 2
+  enqueue(inputs[1], get(cmds, 2));
+  enqueue(inputs[1], get(cmds, 4));
+
+  if (*count == 2){
+    //if 2 &, construct a third queues
+    inputs[2] = initialize_queue();
+
+    //construct command 3
+    enqueue(inputs[2], get(cmds, 6));
+    enqueue(inputs[2], get(cmds, 7));
+  }
+
+  //return our queue array
+  return inputs;
+}
+
+//checks for other ampersands aside from a terminating &
+int is_parallel(q *cmds, int *count){
+
+  int i = 0;
+  int redirect_flag = 0;
+  while (get(cmds, i)!=NULL){
+
+    //count the number of ampersands in the command (max 3)
+    if (strcmp(get(cmds, i), "&") == 0){
+      (*count)++;
+    }
+    //check for invalid inputs
+    if (strcmp(get(cmds, i), "|") == 0 || strcmp(get(cmds, i), ">") == 0 ||
+	strcmp(get(cmds, i), "<") == 0 || strcmp(get(cmds, i), ">>") == 0){
+      redirect_flag = 1;
+    }
+      
+    i++;
+  }
+  //valid; no ampersands
+  if(*count == 0){
+    return 0;
+  }
+  
+  //invalid input
+  if (redirect_flag == 1 && (*count) > 0){
+    return -1;
+  }
+
+  //invalid input
+  if ((*count) != 1 && (*count) != 2){
+    return -1;
+  }
+
+  //checks for valid input length
+  if(cmds->size != 5 && cmds->size != 8){
+    return -1;
+  }
+
+  //checks for correct location of &
+  if(strcmp(get(cmds, 1), "&") != 0){
+    return -1;
+  }
+
+  //checks for correct location of &
+  if((*count) == 2 && strcmp(get(cmds,5), "&") != 0){
+    return -1;
+  }
+
+  //all conditions hold for valid parallelism
+  return 1;
+}
 
 int check_IO_redirects(q *command){
 
