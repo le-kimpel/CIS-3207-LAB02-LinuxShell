@@ -53,6 +53,7 @@ int menu(char **argv, char **env){
   }
    
   else if (strcmp(argv[0], "quit") == 0){
+   
     quit();
 
   }else if (strcmp(argv[0], "help") == 0){
@@ -166,7 +167,7 @@ int cd(char *argv){
 
   // setenv("PWD", pwd, 1);
 
-  printf("%s%s\n", "current pwd: ", getenv("PWD"));
+  //  printf("%s%s\n", "current pwd: ", getenv("PWD"));
   return 0;
   
 }

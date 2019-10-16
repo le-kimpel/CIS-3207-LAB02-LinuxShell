@@ -1,12 +1,12 @@
 CFLAGS = -g
 
-objects = linkedlist.o main.o internal.o 
+objects = main.o linkedlist.o internal.o
 
-str : $(objects)
-	cc -o str $(objects)
+myshell : $(objects)
+	cc -o myshell $(objects)
 
 main.o : linkedlist.h internal.h
 
 .PHONY : clean
 clean :
-	rm str $(objects)
+	rm myshell $(objects)

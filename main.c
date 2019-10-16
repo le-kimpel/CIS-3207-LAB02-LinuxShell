@@ -709,18 +709,20 @@ void handle_internal_cmd(q *command){
     exit(0);
   }
   
-  //if we quitted: (ensuring a quit will happen)
-  if (strcmp(args[0], "quit") == 0){
-    quit();
-  }
 
   //checks to see if menu for internal commands returns failure
   //if it does, then we exec since it is likely external
   if(res == 1){
-    execvp(get(command,0), args);
-  // puts("ERROR: Failed to execute command");
-  // }
+    if (execvp(get(command,0), args)<0){
+      quit();
+    }
   }
+  
+  //if we quitted: (ensuring a quit will happen)
+  if (strcmp(args[0], "quit") == 0){
+    exit(0);
+  }
+  
 }
 
 void handle_redirects(q *command){
