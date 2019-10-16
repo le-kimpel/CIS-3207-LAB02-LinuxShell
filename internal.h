@@ -25,7 +25,7 @@ int dir(char *argv);
 //changes the current directory
 int  cd(char *argv);
 //gets the help manual
-void help(char *argv);
+void help();
 //main interface for executing internal commands
 int menu(char **argv, char **env);
 

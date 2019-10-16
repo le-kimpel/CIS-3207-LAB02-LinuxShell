@@ -21,23 +21,11 @@ void environ(char ** env);
 int dir(char *argv);
 //changes the current directory
 int  cd(char *argv);
-//gets the help manual
-void help(char *argv);
+//gets the user manual for the shell 
+void help();
 //main interface for executing internal commands
 int menu(char **argv, char **env);
 
-/*
-int main(char * argc, char ** argv, char **env){
- 
-   menu(argv, env);
-
-  // char *args[] = {"dir", NULL};
-  //menu(args, env);
-  // menu(args, env);
-  return 0;
-
-}
-*/
 
 //if-else statements to control what executes
 int menu(char **argv, char **env){
@@ -65,6 +53,9 @@ int menu(char **argv, char **env){
    
   else if (strcmp(argv[0], "quit") == 0){
     quit();
+
+  }else if (strcmp(argv[0], "help") == 0){
+    help();
 
   }else{
     return 1;
@@ -171,16 +162,22 @@ int cd(char *argv){
 
   // setenv("PWD", pwd, 1);
 
-   printf("%s%s\n", "current pwd: ", getenv("PWD"));
+  printf("%s%s\n", "current pwd: ", getenv("PWD"));
   return 0;
   
 }
 
-void help(char *argv){
+void help(){
 
+  FILE *filePtr;
+  
+  filePtr = fopen("README.txt", "r");
+  
+  char *manual = (char*)malloc(300*sizeof(char));
 
-
-
+  while(fgets(manual, 300,  filePtr)){
+    printf("%s\n", manual);
+  }
 
   }
 
