@@ -6,4 +6,6 @@ cd ../ ../
 | ./test |
 < ./test > ./test <
 >> ./test >> 
+ls        
+
 quit

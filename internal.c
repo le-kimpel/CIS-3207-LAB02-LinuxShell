@@ -27,6 +27,7 @@ void help();
 int menu(char **argv, char **env);
 
 
+
 //if-else statements to control what executes
 int menu(char **argv, char **env){
   
@@ -110,13 +111,15 @@ int dir(char *argv){
   
   DIR *d;
   struct dirent *dir;
+ 
   
   //if no commands attached
   if (argv == "" || argv == " " || argv == NULL){
     d = opendir(".");
-    
+ 
   }else{
     d = opendir(argv);
+     
   }
 
   //success
@@ -130,6 +133,7 @@ int dir(char *argv){
     //failure
   }else{  
     puts("An error occurred executing dir.");
+
   }
   return 0; 
 }

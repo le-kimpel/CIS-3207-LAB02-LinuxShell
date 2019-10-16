@@ -23,7 +23,7 @@ Welcome to MyShell. We can launch this program by typing the following
 commands into an ordinary Linux terminal:
 
 (1) make 
-(2) ./str
+(2) ./myshell
 
 This will generate, from a makefile (entitled makefile) with the associated binaries,
 an executable version of the shell.
@@ -43,8 +43,12 @@ Only one batch file is permitted. More than one batch file being executed will r
 in failure. To execute a batch file, we should perform the following commands:
 
 (1) make
-(2) ./str batch.txt
+(2) ./myshell batch.txt
 This will then reproduce all of the commands and their output from this batch file.
+
+The shell package contains a few premade batch files. "batch_correct.txt" is a batch
+file consisting of commands with correct syntax. "bad_batch.txt" is a batch file
+consisting of commands with purposefully poor syntax.
 
 To exit the shell, enter "quit" into the terminal.
 

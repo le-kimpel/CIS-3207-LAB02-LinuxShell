@@ -141,14 +141,20 @@ int main(char *c, char**argv, char **environ){
       //this is for consistent formatting regardless of parallel commands
       for (int j = 0; j<q_array[i]->size; j++){
 	strcat(input_array[i], get(q_array[i], j));
-	strcat(input_array[i], " ");
+
+	
+		if (j !=(q_array[i]->size)-1){
+	  strcat(input_array[i], " ");
+	  	}
+	
 
       }
-
+      
       //we will remove the \n when tokenizing, but for now it stays so that
       //it is consistent with non-parallel entries 
-      strcat(input_array[i], "\n");
-      // printf("[%s]\n", input_array[i]);
+       strcat(input_array[i], "\n");
+     
+       //printf("[%s]\n", input_array[i]);
     }
 
     //if malloc was successful
@@ -170,7 +176,6 @@ int main(char *c, char**argv, char **environ){
        	char **temp = str_to_array(input_array[i]);
 	
 	//converts 2d array to linked list
-	//q *temp2 = str_to_linkedlist(temp);
 
 	q *temp2 = q_array[i];
 	
@@ -184,7 +189,7 @@ int main(char *c, char**argv, char **environ){
 	
 	//initiate recursive tokenization (pipes first)
 	pipe_cmd(temp2, temp, &index);
-	exit(0);
+	
       }
     }
 
@@ -691,6 +696,7 @@ void handle_internal_cmd(q *command){
     i++;
   }
 
+  //printf("%s\n", get(command, 0));
   //insert null-terminating character
   args[i] = NULL;
   
@@ -711,7 +717,9 @@ void handle_internal_cmd(q *command){
   //checks to see if menu for internal commands returns failure
   //if it does, then we exec since it is likely external
   if(res == 1){
-     execvp(get(command,0), args);
+    execvp(get(command,0), args);
+  // puts("ERROR: Failed to execute command");
+  // }
   }
 }
 
