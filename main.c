@@ -9,19 +9,6 @@
 #include <fcntl.h>
 #include "internal.h"
 
-/*
-  -----------------
-  | UPDATE NOTES: |
-  -----------------
--do readme
--do other documentation
--add articulate error messages
--help
-
-BUGS:
-
-
-*/
 
 //function prototypes
 char **str_to_array(char *str);
@@ -39,11 +26,13 @@ void handle_redirects(q *command);
 int check_IO_redirects(q *command);
 int is_parallel(q *command, int * count);
 q** format_parallel(q*command, int * count);
+
+//global environment variable
 char **env;
 
 int main(char *c, char**argv, char **environ){
 
-  //batch file
+  //batch file success: redirect from stdin
   if (argv[1]!=NULL){
     in_redirect_cmd(argv[1]);
   }
@@ -106,46 +95,63 @@ int main(char *c, char**argv, char **environ){
       continue;
     }
 
+    //counter for num. amepersands (max 3)
     int count = 0;
+    //boolean for checking if a cmd is parallel or not
     int should_parallel = is_parallel(cpy, &count);
 
-    printf("should parallel [%d] : count [%d]\n", should_parallel, count);
+    //debugging statement prints whether parallel cmds are detected and
+    //how many ampersands
+    // printf("should parallel [%d] : count [%d]\n", should_parallel, count);
+
+    //upon failure
     if(should_parallel == -1){
       printf("ERROR: Invalid input\n");
       continue;
     }
-    
+
+    //formatting array to organize commands
     q** q_array;
     q_array = format_parallel(cpy, &count);
 
+    //debugging print statement to check validity of entry
+    /*
     for(int i = 0; i <= count; i++){
       print_q(q_array[i]);
     }
-   
-  
+    */
+
+    //formatted array that will be sent to recursive function
+    //count is dependent on the num. ampersands
     char *input_array[count+1];
     int malloc_flag = 0;
-   
+
+    //malloc each string of input array
     for (int i = 0; i<=count; i++){
       input_array[i] = (char*)malloc(200*sizeof(char));
 
+      //upon failure to malloc
       if(input_array[i] == NULL){
 	puts("Failed to allocate memory for the input string");
 	malloc_flag = 1;
 	break;
       }
 
-      
+      //place every item in queue into input array from reformatted linkedlist
+      //this is for consistent formatting regardless of parallel commands
       for (int j = 0; j<q_array[i]->size; j++){
 	strcat(input_array[i], get(q_array[i], j));
 	strcat(input_array[i], " ");
 
       }
-      
+
+      //we will remove the \n when tokenizing, but for now it stays so that
+      //it is consistent with non-parallel entries 
       strcat(input_array[i], "\n");
-      printf("[%s]\n", input_array[i]);
+      // printf("[%s]\n", input_array[i]);
     }
-    
+
+    //if malloc was successful
     if (malloc_flag == 1){
       continue;
     }
@@ -182,6 +188,7 @@ int main(char *c, char**argv, char **environ){
       }
     }
 
+    //if we do not have a terminating ampersand, parent waits for child to complete
     if (wait_flag == 1){
       for(int i = 0; i <= count; i++){
 	int status = 0;
@@ -192,6 +199,7 @@ int main(char *c, char**argv, char **environ){
   return 0;
 }
 
+//method to format parallel commands and tokenize them
 q** format_parallel(q*cmds, int *count){
   //assume have at least 1 & (2 commands)
   q** inputs;
@@ -207,7 +215,7 @@ q** format_parallel(q*cmds, int *count){
   }
   
   if(inputs == NULL){
-    printf("ERROR: Failed to malloc Q array");
+    printf("ERROR: Failed to malloc q* linkedlist");
   }
   
   //initialize our queues
@@ -317,6 +325,16 @@ int check_IO_redirects(q *command){
   //can't begin or end with a pipe (no pipes to nowhere)
   if (strcmp(get(command, command->size-1), "|") == 0 ||
       strcmp(get(command, 0), "|") == 0){
+    return 0;
+    //cannot begin with a redirect nor end with a redirect 
+  }else if (strcmp(get(command, command->size-1), ">") == 0 ||
+      strcmp(get(command, 0), ">") == 0){
+    return 0;
+  }else  if (strcmp(get(command, command->size-1), "<") == 0 ||
+      strcmp(get(command, 0), "<") == 0){
+    return 0;
+  }else if (strcmp(get(command, command->size-1), ">>") == 0 ||
+      strcmp(get(command, 0), ">>") == 0){
     return 0;
   }
   
@@ -433,7 +451,7 @@ int check_IO_redirects(q *command){
   return 1;
 }
 
-//sets output to a file
+//sets output to a file and concatenates
 void cat_out_redirect_cmd(char *FILENAME){
   
   int fd = open(FILENAME, O_CREAT|O_WRONLY|O_APPEND, 0644);
@@ -506,7 +524,9 @@ void handle(q *pipe_list){
   
   //if command is preprocessed and valid, redirect as necessary
   if (get(pipe_list, 0)!=NULL){
+    //method to handle redirects: >, <, >> 
      handle_redirects(pipe_list);
+     //method to execute or perform not only internal, but external commands
      handle_internal_cmd(pipe_list);
   }
 }
@@ -542,9 +562,11 @@ q *pipe_cmd(q *parent_list, char **str, int *index){
   
   //child process handles the pipe
   if (pid == 0){
-    
+
+    //close the unused end of the pipe 
     close(fd[READ]);
-    
+
+    //overwrite page table
     dup2(fd[WRITE], 1);
     
     handle(pipe_list);
@@ -552,14 +574,18 @@ q *pipe_cmd(q *parent_list, char **str, int *index){
     //parent process takes the parent list
   }else if (pid > 0){
 
+    //parent waits for its child
     wait(NULL);
 
+    //close the unused end of the pipe
     close(fd[WRITE]);
-    
+
+    //overwrite page table
     dup2(fd[READ], 0);
     
     char *args[] = {NULL};
 
+    //recursively call the method with updated pointer to index
     pipe_cmd(parent_list, str, index);
     
   }
@@ -577,7 +603,7 @@ q *tok_pipes(q *parent_list, char **str, int *index){
   
   while (str[i]!=NULL){
     
-    //compares at every node    
+    //compares at every node whether a pipe exists   
     if (strcmp(str[i],"|")==0){     
       
       break;
@@ -593,6 +619,7 @@ q *tok_pipes(q *parent_list, char **str, int *index){
     i++;
   }
 
+  //update pointer
   *index = i+1;
   //dequeue to get rid of extra pipe character
    dequeue(parent_list);
@@ -608,21 +635,13 @@ void print_str(char **str){
   int i = 0;
   
   while(str[i]!=NULL){
-    
     if (str[i+1]==NULL){
-
       printf("%s%s", str[i], "}");
-      
     }else{
-      
       printf("%s%s", str[i], ",");
-      
     }
-    
     i++;
-    
   }
-  
 }
 
 //function to print the list for debugging
@@ -679,16 +698,18 @@ void handle_internal_cmd(q *command){
   //checking failure
   int res = menu(args, env);
 
+  //triple checking for exit conditions: if internal command succeeds, exit fork
   if (res == 0){
     exit(0);
   }
   
-  //if we quitted:
+  //if we quitted: (ensuring a quit will happen)
   if (strcmp(args[0], "quit") == 0){
     quit();
   }
 
   //checks to see if menu for internal commands returns failure
+  //if it does, then we exec since it is likely external
   if(res == 1){
      execvp(get(command,0), args);
   }
@@ -721,7 +742,7 @@ void handle_redirects(q *command){
       out_index = i+1;
       OUT_FLAG = 1;
      
-
+      //if we find a concatenated out-redirect
     }else if (strcmp(get(command, i), ">>") == 0){
       cat_out_index = i+1;
       CAT_FLAG = 1;
